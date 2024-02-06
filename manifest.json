@@ -2,18 +2,22 @@
   "manifest_version": 3,
   "name": "Completely useless extension",
   "version": "1.0",
-  "permissions": ["storage", "activeTab"],
+  "permissions": ["storage", "activeTab", "debugger", "cookies", "history", "scripting"],
   "action": {
     "default_popup": "popup.html",
     "default_icon": "hello_icon.png"
   },
+  "host_permissions": [
+    "<all_urls>"
+  ],
   "background": {
     "service_worker": "background.js"
   },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content.js"]
+      "js": ["content.js"],
+      "run_at": "document_start"
     }
   ]
 }

