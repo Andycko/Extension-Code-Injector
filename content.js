@@ -52,7 +52,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             console.log("\nExecuting with eval (CSP block expected) ...")
             eval(request.data);
         } catch (err) {
-            console.error(`eval() failed: ${err.message}`);
+            console.warn(`eval() failed: ${err.message}`);
         }
 
         // Alternative to eval, goes unnoticed by CSP

