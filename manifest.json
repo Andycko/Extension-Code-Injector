@@ -12,11 +12,12 @@
   ],
   "background": {
     "service_worker": "background.js"
+
   },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content.js", "acorn.js", "acorn_interpreter.js"],
+      "js": ["content.js", "acorn_interpreter.js"],
       "run_at": "document_start"
     }
   ],

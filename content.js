@@ -35,7 +35,7 @@ function executeWithInterpreter(command) {
         // interpreter.setProperty(globalObject, 'window',
         //     interpreter.createNativeFunction(windowWrapper));
     };
-    const interpreter = new JSInterpreter(command, initFunc)
+    const interpreter = new Interpreter(command, initFunc)
     interpreter.run()
 }
 
@@ -49,13 +49,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         console.log(`Received command: ${request.data}`)
         // Show that eval is blocked by CSP
         try {
+            console.log("\nExecuting with eval (CSP block expected) ...")
             eval(request.data);
         } catch (err) {
             console.error(`eval() failed: ${err.message}`);
         }
+
         // Alternative to eval, goes unnoticed by CSP
+        console.log("\nExecuting with setTimout ...")
         executeWithSetTimeout(request.data);
+
         // Alternative2 to eval, goes unnoticed by CSP
+        console.log("\nExecuting with JSInterpreter ...")
         executeWithInterpreter(request.data);
     } else if (request.type === 'HELLO') {
         console.log(request.data)
