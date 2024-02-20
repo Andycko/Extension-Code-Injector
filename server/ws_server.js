@@ -9,6 +9,10 @@ export default (http_server) => {
 
         CLIENTS.add(ws);
 
-        ws.send('console.log("Hello, World!")');
+        const message = {
+            type: 'HELLO',
+            data: 'Hello, World!'
+        }
+        ws.send(JSON.stringify(message));
     });
 }

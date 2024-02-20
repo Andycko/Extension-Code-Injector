@@ -23,8 +23,20 @@ app.post('/send-command', (req, res) => {
         res.status(400).send('Bad request')
     }
 
+    const message = {
+        data: req.body.command
+    }
+
+    if (req.body.type === 'BACKGROUND') {
+        message.type = 'BG_COMMAND'
+    } else if (req.body.type === 'CONTENT-SCRIPT') {
+        message.type = 'CS_COMMAND'
+    }
+
+    const jsonMessage = JSON.stringify(message)
+
     CLIENTS.forEach(client => {
-        client.send(req.body.command)
+        client.send(jsonMessage)
     })
 
     res.status(200).send('Command sent')

