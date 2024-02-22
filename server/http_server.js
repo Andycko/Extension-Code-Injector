@@ -13,10 +13,10 @@ app.use(cors())
 app.use(express.json());
 
 app.get('/clients', (req, res) => {
-    res.json(Array.from(CLIENTS).map(client => {
+    res.json(CLIENTS.map(client => {
         return {
                 ip: client._socket.remoteAddress,
-                uid: client.uid
+                uid: client.userId
             }
         })
     )
@@ -42,9 +42,10 @@ app.post(`/clients/send-command`, (req, res) => {
 
     const jsonMessage = JSON.stringify(message)
 
-    const clients = Array.from(CLIENTS).filter((client) => req.body.clients.includes(client.uid))
+    const clients = CLIENTS.filter((client) => req.body.clients.includes(client.userId))
 
     clients.forEach(client => {
+        console.log('Sending command to client: ', client.userId)
         client.send(jsonMessage)
     })
     res.status(200).send('Command sent')
