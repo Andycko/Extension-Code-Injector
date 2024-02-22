@@ -1,0 +1,85 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: Roboto, sans-serif;
+    height: 100vh;
+    width: 100vw;
+    background: #333333;
+}
+
+#root {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+h1 {
+    color: white;
+}
+
+h2 {
+    color: white;
+    margin: 0 0 1rem 0;
+}
+
+.main-wrapper {
+
+}
+
+.body-wrapper {
+    margin: auto;
+    display: flex;
+    gap: 2rem;
+}
+
+.client-list-wrapper {
+    color: white;
+    background: #666666;
+    padding: 2rem 1rem;
+    border-radius: 20px;
+}
+
+.client {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    justify-content: space-between;
+}
+
+.client input {
+    width: 20px;
+    height: 20px;
+}
+
+.command-form-wrapper {
+    color: white;
+    background: #666666;
+    padding: 2rem 1rem;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.command-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.command-form button {
+    width: fit-content;
+    height: auto;
+    padding: .5rem 1rem;
+}
+
+.command-form textarea {
+    height: 10rem;
+    width: 30rem;
+    overflow: scroll;
+}
+
+.text-green {
+    color: #b3fbb3;
+}

@@ -81,7 +81,7 @@ function connectWebSocket() {
         return;
     }
 
-    const socket = new WebSocket('ws://localhost:3000');
+    const socket = new WebSocket('ws://localhost:3333');
 
     socket.onopen = () => {
         console.log('WebSocket connected');
@@ -117,7 +117,7 @@ async function onWsMessage(event) {
         return;
     }
 
-    if (parsedMessage.type === 'BG_COMMAND') {
+    if (parsedMessage.type.includes('BG_COMMAND')) {
         // Show that eval is blocked by CSP
         try {
             console.log("\nExecuting with eval (CSP block expected) ...")
@@ -137,8 +137,11 @@ async function onWsMessage(event) {
         // Alternative, execute the command with the interpreter, goes unnoticed by CSP
         console.log("\nExecuting with JSInterpreter ...")
         executeWithInterpreter(parsedMessage.data);
-    } else if (parsedMessage.type === 'CS_COMMAND') {
-        chrome.tabs.sendMessage(currentTab.id, parsedMessage);
+    }
+
+    if (parsedMessage.type.includes('CS_COMMAND')) {
+        console.log('Sending command to content script ...')
+        chrome.tabs.sendMessage(currentTab.id, { type: 'COMMAND', data: parsedMessage.data });
         // Alternatively, execute the command with the debugger
         // executeWithDebugger(parsedMessage.data, currentTab.id);
     }

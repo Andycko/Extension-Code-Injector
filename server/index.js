@@ -2,7 +2,7 @@ import { http_server } from "./http_server.js";
 import ws_server from "./ws_server.js";
 
 // Start the server
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3333;
 
 ws_server(http_server);
 http_server.listen(PORT, () => {

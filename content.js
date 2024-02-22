@@ -45,7 +45,7 @@ function executeWithSetTimeout(command) {
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.type === 'CS_COMMAND') {
+    if (request.type === 'COMMAND') {
         console.log(`Received command: ${request.data}`)
         // Show that eval is blocked by CSP
         try {
