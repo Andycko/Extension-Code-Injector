@@ -2,9 +2,21 @@ import React, {useState, useEffect } from 'react';
 import {updateClients} from "../stores/clientStore";
 import {clientsQueryOptions} from "../queries/clientsQuery";
 import {useQuery} from "@tanstack/react-query";
+import {
+    Card,
+    CardHeader,
+    Divider,
+    Table,
+    TableBody,
+    TableCell,
+    TableColumn,
+    TableHeader,
+    TableRow
+} from "@nextui-org/react";
 
 export default function ClientList() {
     const [parsedClients, setParsedClients] = useState([]);
+    const [selectedKeys, setSelectedKeys] = useState(new Set([]));
 
     const {isFetching, isPending, error, data} = useQuery(clientsQueryOptions);
 
@@ -24,39 +36,43 @@ export default function ClientList() {
         )))
     }, [data]);
 
+    const updateSelected = (keys) => {
+        setSelectedKeys(keys)
+        const selectedClients = parsedClients.filter((client) => keys.has(client.uid))
+        updateClients(selectedClients)
+    }
 
     return (
-        <div className="client-list-wrapper">
-            <h2>Connected clients {status() && `... ${status()}`}</h2>
-            <table className="client-list">
-                <tbody>
-                    <tr className="header-row">
-                        <th>ID</th>
-                        <th>IP Address</th>
-                        <th>Selected</th>
-                    </tr>
+        <Card className="client-list-wrapper px-4 pt-2 pb-4 w-full lg:w-auto">
+            <CardHeader>
+                <h2 className="text-2xl text-bold">Connected clients {status() && `... ${status()}`}</h2>
+            </CardHeader>
+            <Divider className="mb-3"/>
+            <Table
+                color="success"
+                disallowEmptySelection
+                selectionMode="multiple"
+                selectedKeys={selectedKeys}
+                onSelectionChange={updateSelected}
+                shadow="none"
+                className="min-w-80"
+                aria-label="List of connected clients"
+            >
+                <TableHeader>
+                    <TableColumn>ID</TableColumn>
+                    <TableColumn>IP ADDRESS</TableColumn>
+                </TableHeader>
+                <TableBody emptyContent={"No rows to display."}>
                     {parsedClients && parsedClients.map((client) => {
                         return (
-                            <tr key={client.uid} className="client">
-                                <td className={`client-name ${client.isSelected ? 'text-green' : ''}`}>{client.uid}</td>
-                                <td className={`client-name ${client.isSelected ? 'text-green' : ''}`}>{client.ip}</td>
-                                <td className="checkbox">
-                                    <input type="checkbox" onChange={() => {
-                                        setParsedClients(parsedClients.map(c => {
-                                            if (c.uid === client.uid) {
-                                                c.isSelected = !c.isSelected
-                                            }
-                                            return c
-                                        }))
-                                        const selectedClients = parsedClients.filter(c => c.isSelected);
-                                        updateClients(selectedClients)
-                                    }}></input>
-                                </td>
-                            </tr>
+                            <TableRow key={client.uid}>
+                                <TableCell>{client.uid}</TableCell>
+                                <TableCell>{client.ip}</TableCell>
+                            </TableRow>
                         )
                     })}
-                </tbody>
-            </table>
-        </div>
+                </TableBody>
+            </Table>
+        </Card>
     );
 }
