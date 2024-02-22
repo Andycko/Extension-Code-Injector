@@ -3,6 +3,7 @@ import {updateClients} from "../stores/clientStore";
 import {clientsQueryOptions} from "../queries/clientsQuery";
 import {useQuery} from "@tanstack/react-query";
 import {
+    Button,
     Card,
     CardHeader,
     Divider,
@@ -18,13 +19,18 @@ export default function ClientList() {
     const [parsedClients, setParsedClients] = useState([]);
     const [selectedKeys, setSelectedKeys] = useState(new Set([]));
 
-    const {isFetching, isPending, error, data} = useQuery(clientsQueryOptions);
+    const {isFetching, isPending, error, data, refetch} = useQuery(clientsQueryOptions);
 
     const status = () => {
         if (isPending) return 'Pending'
         if (isFetching) return 'Fetching'
-        if (error) return 'Error'
-        return
+        return 'Refresh'
+    }
+
+    const setColor = () => {
+        if (status() === 'Pending') return 'warning'
+        if (status() === 'Fetching') return 'info'
+        return 'success'
     }
 
     useEffect(() => {
@@ -43,9 +49,10 @@ export default function ClientList() {
     }
 
     return (
-        <Card className="client-list-wrapper px-4 pt-2 pb-4 w-full lg:w-auto">
-            <CardHeader>
-                <h2 className="text-2xl text-bold">Connected clients {status() && `... ${status()}`}</h2>
+        <Card className="client-list-wrapper px-4 pt-2 pb-4 w-full lg:w-auto min-w-[35rem]">
+            <CardHeader className="flex flex-row justify-between">
+                <h2 className="text-2xl text-bold">Connected clients</h2>
+                <Button color={setColor()} onClick={refetch} size="sm" isDisabled={status() !== 'Refresh'}>{status()}</Button>
             </CardHeader>
             <Divider className="mb-3"/>
             <Table
