@@ -1,15 +1,12 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {useMutation} from "@tanstack/react-query";
-import axios from "axios";
+import {clientStore} from "../stores/clientStore";
+import {sendCommandMutationOptions} from "../queries/sendCommandMutation";
 
-export default function CommandInput({clients}) {
-    const {isPending, error, data, isFetching, mutate} = useMutation({
-        mutationFn: (body) => {
-            return axios
-                .post(`http://localhost:3333/clients/send-command/`, body)
-                .then((res) => res.data)
-        },
-    })
+export default function CommandInput() {
+    const clients = clientStore((state) => state.clients);
+
+    const {isPending, error, data, isFetching, mutate} = useMutation(sendCommandMutationOptions)
 
     const handleSubmit = (event) => {
         event.preventDefault();
@@ -26,7 +23,7 @@ export default function CommandInput({clients}) {
         if (event.target.contentScript.checked) {
             body.type.push('CONTENT-SCRIPT')
         }
-        
+
         // send command
         mutate(body)
     };
