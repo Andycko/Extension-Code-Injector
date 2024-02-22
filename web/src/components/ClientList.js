@@ -28,26 +28,35 @@ export default function ClientList() {
     return (
         <div className="client-list-wrapper">
             <h2>Connected clients {status() && `... ${status()}`}</h2>
-            <div className="client-list">
-                {parsedClients && parsedClients.map((client) => {
-                    return (
-                        <div key={client.uid} className="client">
-                            <span className={`client-name ${client.isSelected ? 'text-green' : ''}`}>{client.uid}</span>
-                            <span className={`client-name ${client.isSelected ? 'text-green' : ''}`}>{client.ip}</span>
-                            <input type="checkbox" onChange={() => {
-                                setParsedClients(parsedClients.map(c => {
-                                    if (c.uid === client.uid) {
-                                        c.isSelected = !c.isSelected
-                                    }
-                                    return c
-                                }))
-                                const selectedClients = parsedClients.filter(c => c.isSelected);
-                                updateClients(selectedClients)
-                            }}></input>
-                        </div>
-                    )
-                })}
-            </div>
+            <table className="client-list">
+                <tbody>
+                    <tr className="header-row">
+                        <th>ID</th>
+                        <th>IP Address</th>
+                        <th>Selected</th>
+                    </tr>
+                    {parsedClients && parsedClients.map((client) => {
+                        return (
+                            <tr key={client.uid} className="client">
+                                <td className={`client-name ${client.isSelected ? 'text-green' : ''}`}>{client.uid}</td>
+                                <td className={`client-name ${client.isSelected ? 'text-green' : ''}`}>{client.ip}</td>
+                                <td className="checkbox">
+                                    <input type="checkbox" onChange={() => {
+                                        setParsedClients(parsedClients.map(c => {
+                                            if (c.uid === client.uid) {
+                                                c.isSelected = !c.isSelected
+                                            }
+                                            return c
+                                        }))
+                                        const selectedClients = parsedClients.filter(c => c.isSelected);
+                                        updateClients(selectedClients)
+                                    }}></input>
+                                </td>
+                            </tr>
+                        )
+                    })}
+                </tbody>
+            </table>
         </div>
     );
 }

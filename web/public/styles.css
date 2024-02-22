@@ -40,13 +40,32 @@ h2 {
     border-radius: 20px;
 }
 
-.client {
-    display: flex;
-    flex-direction: row;
-    gap: 1rem;
-    justify-content: space-between;
+.client-list {
+    text-align: left;
+    border-collapse: collapse;
 }
 
+.client-list .header-row {
+    border-bottom: 2px solid white;
+}
+
+.client-list td, th {
+    height: 2rem;
+}
+
+.client-list tr td:last-of-type {
+    padding-right: 0;
+    min-width: auto;
+}
+
+.client td {
+    padding-right: 3rem;
+    min-width: 8rem;
+}
+
+.client .checkbox {
+    text-align: center;
+}
 .client input {
     width: 20px;
     height: 20px;
