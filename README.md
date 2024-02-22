@@ -1,3 +1,5 @@
+![Screenshot of the attackers panel UI](./docs/screen.png)
+---
 # Malicious Chrome Browser Extension
 This browser extension is for showcasing the possibilities of remote code execution through a malicious browser extension.
 
