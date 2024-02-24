@@ -1253,18 +1253,6 @@ video {
   min-width: var(--nextui-spacing-unit-8);
 }
 
-.min-w-96 {
-  min-width: 24rem;
-}
-
-.min-w-\[15rem\] {
-  min-width: 15rem;
-}
-
-.min-w-\[35rem\] {
-  min-width: 35rem;
-}
-
 .max-w-2xl {
   max-width: 42rem;
 }
@@ -1656,16 +1644,16 @@ video {
   gap: 1rem;
 }
 
+.gap-6 {
+  gap: 1.5rem;
+}
+
 .gap-unit-2 {
   gap: var(--nextui-spacing-unit-2);
 }
 
 .gap-unit-3 {
   gap: var(--nextui-spacing-unit-3);
-}
-
-.gap-6 {
-  gap: 1.5rem;
 }
 
 .space-x-0 > :not([hidden]) ~ :not([hidden]) {
@@ -6782,51 +6770,34 @@ video {
   }
 }
 
-@media (min-width: 768px) {
-  .md\:mx-5 {
-    margin-left: 1.25rem;
-    margin-right: 1.25rem;
-  }
-
-  .md\:w-full {
-    width: 100%;
-  }
-
-  .md\:w-auto {
-    width: auto;
-  }
-
-  .md\:justify-start {
-    justify-content: flex-start;
-  }
-
-  .md\:justify-center {
-    justify-content: center;
-  }
-
-  .md\:gap-6 {
-    gap: 1.5rem;
-  }
-
-  .md\:gap-2 {
-    gap: 0.5rem;
-  }
-}
-
 @media (min-width: 1024px) {
+  .lg\:w-\[30rem\] {
+    width: 30rem;
+  }
+
   .lg\:w-auto {
     width: auto;
   }
 
-  .lg\:w-\[35rem\] {
+  .lg\:min-w-\[30rem\] {
+    min-width: 30rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .xl\:w-\[35rem\] {
     width: 35rem;
   }
 
-  .lg\:justify-start {
+  .xl\:min-w-\[35rem\] {
+    min-width: 35rem;
+  }
+
+  .xl\:justify-start {
     justify-content: flex-start;
   }
 
-  .lg\:gap-3 {
+  .xl\:gap-3 {
     gap: 0.75rem;
   }
 }

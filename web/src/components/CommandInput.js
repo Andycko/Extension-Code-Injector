@@ -40,7 +40,7 @@ export default function CommandInput() {
     }
 
     return (
-        <Card className="command-form-wrapper px-4 pt-2 pb-4 w-full lg:w-[35rem]">
+        <Card className="command-form-wrapper px-4 pt-2 pb-4 w-full lg:w-[30rem] xl:w-[35rem]">
             <CardHeader>
                 <h2 className="text-2xl text-bold">Send command</h2>
             </CardHeader>

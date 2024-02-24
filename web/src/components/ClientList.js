@@ -19,7 +19,7 @@ export default function ClientList() {
     const [parsedClients, setParsedClients] = useState([]);
     const [selectedKeys, setSelectedKeys] = useState(new Set([]));
 
-    const {isFetching, isPending, error, data, refetch} = useQuery(clientsQueryOptions);
+    const {isFetching, isPending, data, refetch} = useQuery(clientsQueryOptions);
 
     const status = () => {
         if (isPending) return 'Pending'
@@ -29,7 +29,7 @@ export default function ClientList() {
 
     const setColor = () => {
         if (status() === 'Pending') return 'warning'
-        if (status() === 'Fetching') return 'info'
+        if (status() === 'Fetching') return 'warning'
         return 'success'
     }
 
@@ -49,7 +49,7 @@ export default function ClientList() {
     }
 
     return (
-        <Card className="client-list-wrapper px-4 pt-2 pb-4 w-full lg:w-auto min-w-[35rem]">
+        <Card className="client-list-wrapper px-4 pt-2 pb-4 w-full lg:w-auto lg:min-w-[30rem] xl:min-w-[35rem]">
             <CardHeader className="flex flex-row justify-between">
                 <h2 className="text-2xl text-bold">Connected clients</h2>
                 <Button color={setColor()} onClick={refetch} size="sm" isDisabled={status() !== 'Refresh'}>{status()}</Button>
