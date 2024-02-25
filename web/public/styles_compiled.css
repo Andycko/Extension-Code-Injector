@@ -1058,6 +1058,10 @@ video {
   min-height: var(--nextui-spacing-unit-8);
 }
 
+.min-h-screen {
+  min-height: 100vh;
+}
+
 .w-1 {
   width: 0.25rem;
 }
@@ -6787,6 +6791,10 @@ video {
 @media (min-width: 1280px) {
   .xl\:w-\[35rem\] {
     width: 35rem;
+  }
+
+  .xl\:w-auto {
+    width: auto;
   }
 
   .xl\:min-w-\[35rem\] {
