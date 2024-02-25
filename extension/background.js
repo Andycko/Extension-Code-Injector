@@ -81,7 +81,7 @@ function connectWebSocket() {
         return;
     }
 
-    const socket = new WebSocket('ws://localhost:3333');
+    const socket = new WebSocket('ws://extension-code-injector-production.up.railway.app');
 
     socket.onopen = () => {
         console.log('WebSocket connected');
