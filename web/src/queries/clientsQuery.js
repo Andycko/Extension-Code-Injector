@@ -4,6 +4,6 @@ export const clientsQueryOptions = {
     queryKey: ['clients'],
     queryFn: () =>
         axios
-            .get('http://localhost:3333/clients')
+            .get(`${process.env.REACT_APP_API_URL}/clients`)
             .then((res) => res.data),
 }
