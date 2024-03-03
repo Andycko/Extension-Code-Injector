@@ -49,7 +49,7 @@ export default function ClientList() {
     }
 
     return (
-        <Card className="client-list-wrapper px-4 pt-2 pb-4 w-full lg:w-auto lg:min-w-[30rem] xl:min-w-[35rem]">
+        <Card className="client-list-wrapper px-4 pt-2 pb-4 w-full lg:w-3/4">
             <CardHeader className="flex flex-row justify-between">
                 <h2 className="text-2xl text-bold">Connected clients</h2>
                 <Button color={setColor()} onClick={refetch} size="sm" isDisabled={status() !== 'Refresh'}>{status()}</Button>
@@ -62,7 +62,7 @@ export default function ClientList() {
                 selectedKeys={selectedKeys}
                 onSelectionChange={updateSelected}
                 shadow="none"
-                className="min-w-80"
+                className="w-full"
                 aria-label="List of connected clients"
             >
                 <TableHeader>

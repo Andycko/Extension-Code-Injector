@@ -14,7 +14,7 @@ function QueryClientProviderWrapper() {
     return (
         <QueryClientProvider client={queryClient}>
             <NextUIProvider>
-                <main className="dark bg-background text-foreground min-h-screen min-w-screen flex items-center justify-center">
+                <main className="dark bg-background text-foreground min-h-screen min-w-screen flex">
                     <App />
                 </main>
             </NextUIProvider>
@@ -24,12 +24,12 @@ function QueryClientProviderWrapper() {
 
 function App() {
     return (
-        <div className="main-wrapper w-full xl:w-auto p-6">
+        <div className="w-full p-10 flex flex-col">
             <h1 className="font-black text-4xl">Extension BotNet</h1>
             <h2 className="font-bold text-2xl text-success mb-10">$> Remote Command Execution</h2>
-            <section className="body-wrapper flex xl:gap-3 gap-6 flex-wrap justify-center xl:justify-start">
-                <ClientList />
+            <section className="body-wrapper flex flex-row flex-wrap lg:flex-nowrap gap-6 justify-center xl:justify-start w-full flex-1">
                 <CommandInput />
+                <ClientList />
             </section>
         </div>
     );
