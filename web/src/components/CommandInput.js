@@ -67,7 +67,6 @@ export default function CommandInput() {
                         const selectedKey = Array.from(keys)[0]
                         setScriptSelected(selectedKey)
                         setTargetSelected(scripts.find((script) => script.handle === selectedKey)?.targets ?? [])
-                        console.log(scriptSelected, scripts.find((script) => script.handle === selectedKey)?.targets, targetSelected)
                     }
                     }
                     description={scripts.find((script) => script.handle === scriptSelected)?.description ?? "Select a pre-defined script to run, or enter your own command."}
