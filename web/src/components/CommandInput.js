@@ -47,8 +47,14 @@ export default function CommandInput() {
         if (isPending) return 'Pending'
         if (isFetching) return 'Fetching'
         if (error) return 'Error'
-        if (data) return data
-        return 'Idle'
+        return 'Send'
+    }
+
+    const setColor = () => {
+        if (status() === 'Pending') return 'warning'
+        if (status() === 'Fetching') return 'warning'
+        if (status() === 'Error') return 'danger'
+        return 'success'
     }
 
     return (
@@ -99,7 +105,7 @@ export default function CommandInput() {
                         <Checkbox color="success" value="background">Run in background</Checkbox>
                         <Checkbox color="success" value="contentScript">Run in content script</Checkbox>
                     </CheckboxGroup>
-                    <Button color="success" variant="ghost" type="submit" className="w-fit">SEND</Button>
+                    <Button color={setColor()} variant="ghost" type="submit" className="w-fit">{status()}</Button>
                 </div>
             </form>
         </Card>
