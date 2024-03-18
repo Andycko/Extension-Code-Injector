@@ -49,7 +49,7 @@ export default function ClientList() {
     }
 
     return (
-        <Card className="client-list-wrapper px-4 pt-2 pb-4 w-full lg:w-3/4">
+        <Card className="client-list-wrapper px-4 pt-2 pb-4 w-full h-full flex-1">
             <CardHeader className="flex flex-row justify-between">
                 <h2 className="text-2xl text-bold">Connected clients</h2>
                 <Button color={setColor()} onClick={refetch} size="sm" isDisabled={status() !== 'Refresh'}>{status()}</Button>

