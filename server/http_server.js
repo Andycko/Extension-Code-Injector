@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import http from 'http';
 import ws_server, {CLIENTS} from "./ws_server.js";
-
+import 'dotenv/config';
 
 const app = express();
 
@@ -12,14 +12,45 @@ app.use(cors())
 // Middleware to parse JSON bodies
 app.use(express.json());
 
-app.get('/clients', (req, res) => {
-    res.json(CLIENTS.map(client => {
-        return {
-                ip: client._socket.remoteAddress,
-                uid: client.userId
+app.get('/clients', async (req, res) => {
+    let processedClients = CLIENTS.map((client) => ({
+        uid: client.userId,
+        ip: client._socket.remoteAddress,
+        address: {}
+    }))
+
+    // TODO: add batching of 50 clients to get IPs
+    const clientIps = processedClients.map((client)=> client.ip)
+    if (clientIps.length === 0) {
+        return res.json(processedClients)
+    }
+
+    try {
+        const res = await fetch(`http://api.ipstack.com/${clientIps.join(',')}?access_key=${process.env.IPSTACK_API_KEY}`)
+        const data = await res.json()
+
+        if (Array.isArray(data)) {
+            data.forEach((client) => {
+                let localClient = processedClients.find((c) => c.ip === client.ip)
+                localClient.address = {
+                    city: client.city,
+                    country: client.country_name,
+                    postCode: client.zip
+                }
+            })
+        } else {
+            let localClient = processedClients.find((c) => c.ip === data.ip)
+            localClient.address = {
+                city: data.city,
+                country: data.country_name,
+                postCode: data.zip
             }
-        })
-    )
+        }
+    } catch (err) {
+        console.error(err.message);
+    }
+
+    return res.json(processedClients)
 })
 
 app.post(`/clients/send-command`, (req, res) => {

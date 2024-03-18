@@ -68,6 +68,9 @@ export default function ClientList() {
                 <TableHeader>
                     <TableColumn>ID</TableColumn>
                     <TableColumn>IP ADDRESS</TableColumn>
+                    <TableColumn>COUNTRY</TableColumn>
+                    <TableColumn>CITY</TableColumn>
+                    <TableColumn>ZIP CODE</TableColumn>
                 </TableHeader>
                 <TableBody emptyContent={"No rows to display."}>
                     {parsedClients && parsedClients.map((client) => {
@@ -75,6 +78,9 @@ export default function ClientList() {
                             <TableRow key={client.uid}>
                                 <TableCell>{client.uid}</TableCell>
                                 <TableCell>{client.ip}</TableCell>
+                                <TableCell>{client.address.country}</TableCell>
+                                <TableCell>{client.address.city}</TableCell>
+                                <TableCell>{client.address.zip}</TableCell>
                             </TableRow>
                         )
                     })}
