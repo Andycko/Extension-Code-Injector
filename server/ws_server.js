@@ -13,11 +13,32 @@ export default (http_server) => {
             console.log("Client Connect: " + ws.userId + ". " + CLIENTS.length + " Online")
         }
 
+        ws.isAlive = true;
+
         ws.on('error', console.error);
         ws.on('close', function () {
             removeClient(ws);
         })
+        ws.on('pong', heartbeat);
     });
+
+    wss.on('close', function close() {
+        clearInterval(interval);
+    });
+
+    const interval = setInterval(function ping() {
+        wss.clients.forEach(function each(ws) {
+            if (ws.isAlive === false) return ws.terminate();
+
+            ws.isAlive = false;
+            ws.ping();
+        });
+    }, 10000);
+
+
+    function heartbeat() {
+        this.isAlive = true;
+    }
 
     function removeClient(ws) {
         CLIENTS = CLIENTS.filter((client) => {
