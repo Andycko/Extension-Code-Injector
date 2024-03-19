@@ -143,7 +143,7 @@ function connectWebSocket() {
 function keepAlive() {
     const keepAliveIntervalId = setInterval(
         () => {
-            if (socket) {
+            if (socket && WS_CONNECTED) {
                 socket.send('keepalive');
             } else {
                 clearInterval(keepAliveIntervalId);
