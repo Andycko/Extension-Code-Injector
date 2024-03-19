@@ -30,7 +30,7 @@ export default function ScreenshotList() {
     }
 
     return (
-        <Card className="screenshot-list-wrapper px-4 pt-2 pb-4 w-full">
+        <Card className="screenshot-list-wrapper px-4 pt-2 pb-4 w-full h-full flex-1">
             <CardHeader className="flex flex-row justify-between">
                 <h2 className="text-2xl text-bold">Captured Screenshots</h2>
                 <Button color={setColor()} onClick={refetch} size="sm" isDisabled={status() !== 'Refresh'}>{status()}</Button>
@@ -43,12 +43,14 @@ export default function ScreenshotList() {
                 aria-label="List of screenshots captured"
             >
                 <TableHeader>
+                    <TableColumn>NAME</TableColumn>
                     <TableColumn>URL</TableColumn>
                 </TableHeader>
                 <TableBody emptyContent={"No rows to display."}>
                     {data && data.map((screenshot) => {
                         return (
                             <TableRow key={screenshot.uid}>
+                                <TableCell>{screenshot.name}</TableCell>
                                 <TableCell>{screenshot.url}</TableCell>
                             </TableRow>
                         )
