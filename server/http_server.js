@@ -6,14 +6,16 @@ import 'dotenv/config';
 import * as fs from 'node:fs'
 import collectorController from "./controllers/collector_controller.js";
 import clientController from "./controllers/client_controller.js";
+import {S3Client} from "@aws-sdk/client-s3";
+
+export const s3Client = new S3Client({region: process.env.AWS_S3_REGION});
 
 const app = express();
 
 // Middleware to disable cors
 app.use(cors())
-
 // Middleware to parse JSON bodies
-app.use(express.json({ limit: '200mb' }));
+app.use(express.json({limit: '200mb'}));
 
 // Client routes
 app.get('/clients', clientController.index)

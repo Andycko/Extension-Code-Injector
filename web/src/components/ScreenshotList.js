@@ -1,11 +1,11 @@
-import React, {useState, useEffect } from 'react';
+import React from 'react';
 import {screenshotsQueryOptions} from "../queries/screenshotsQuery";
 import {useQuery} from "@tanstack/react-query";
 import {
     Button,
     Card,
     CardHeader,
-    Divider,
+    Divider, Link,
     Table,
     TableBody,
     TableCell,
@@ -13,6 +13,7 @@ import {
     TableHeader,
     TableRow
 } from "@nextui-org/react";
+import * as dayjs from 'dayjs'
 
 export default function ScreenshotList() {
     const {isFetching, isPending, data, refetch} = useQuery(screenshotsQueryOptions);
@@ -45,13 +46,17 @@ export default function ScreenshotList() {
                 <TableHeader>
                     <TableColumn>NAME</TableColumn>
                     <TableColumn>URL</TableColumn>
+                    <TableColumn>CREATED AT</TableColumn>
                 </TableHeader>
                 <TableBody emptyContent={"No rows to display."}>
                     {data && data.map((screenshot) => {
                         return (
                             <TableRow key={screenshot.uid}>
                                 <TableCell>{screenshot.name}</TableCell>
-                                <TableCell>{screenshot.url}</TableCell>
+                                <TableCell>
+                                    <Link href={screenshot.url} color="success">Download!</Link>
+                                </TableCell>
+                                <TableCell>{dayjs(screenshot.createdAt).format('YYYY-MM-DD HH:mm:ss')}</TableCell>
                             </TableRow>
                         )
                     })}

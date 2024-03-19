@@ -1,4 +1,8 @@
-import fs from "node:fs";
+import {s3Client} from "../http_server.js";
+import {GetObjectCommand, ListObjectsCommand, PutObjectCommand} from "@aws-sdk/client-s3";
+import {DateTime} from "luxon";
+import { v4 as uuidv4 } from 'uuid';
+import {getSignedUrl} from "@aws-sdk/s3-request-presigner";
 
 class CollectorController {
     async saveCookies(req, res, _next) {
@@ -19,16 +23,44 @@ class CollectorController {
     }
 
     async saveScreenshot(req, res, _next) {
-        // TODO: upload screenshots to S3 instead of local
-        let buff = Buffer.from(req.body.dataUrl.replace('data:image/jpeg;base64,', ''), 'base64');
-        fs.writeFileSync('tmp/screenshot.jpeg', buff);
+        const buff = Buffer.from(req.body.dataUrl.replace('data:image/jpeg;base64,', ''), 'base64');
+
+        // TODO: add client ID to the file name
+        const imgName = `${uuidv4()}-${DateTime.now().toFormat('yyyy-MM-dd_HH-mm-ss')}`
+
+        const command = new PutObjectCommand({
+            Bucket: process.env.AWS_S3_BUCKET,
+            Key: `screenshots/${imgName}.jpeg`,
+            Body: buff,
+        });
+
+        try {
+            const response = await s3Client.send(command);
+            console.log(response);
+        } catch (err) {
+            console.error(err);
+        }
+
         return res.status(200).send('Screenshot received')
     }
 
     async listScreenshots(req, res, _next) {
-        // TODO: list all screenshots from S3
-        const screenshots = fs.readdirSync('tmp').filter((file) => file.endsWith('.jpeg'))
-        res.json(screenshots)
+        const result = []
+
+        const {Contents} = await s3Client.send(new ListObjectsCommand({Bucket: process.env.AWS_S3_BUCKET, Prefix: 'screenshots/'}))
+
+        for (const item of Contents) {
+            const command = new GetObjectCommand({Bucket: process.env.AWS_S3_BUCKET, Key: item.Key})
+            const url = await getSignedUrl(s3Client, command, {expiresIn: 24 * 60 * 60})
+
+            result.push({
+                url,
+                name: item.Key,
+                createdAt: item.LastModified
+            })
+        }
+
+        res.json(result)
     }
 }
 
