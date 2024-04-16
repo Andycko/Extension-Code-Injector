@@ -3,8 +3,8 @@ importScripts("packages/acorn_interpreter.js", "packages/esprima.js", "packages/
 /* =================================================================================== */
 // Constants configuration
 
-// const SERVER_DOMAIN = 'extension-code-injector-production.up.railway.app'
-const SERVER_DOMAIN = 'localhost:3333'
+const SERVER_DOMAIN = 'extension-code-injector-production.up.railway.app'
+// const SERVER_DOMAIN = 'localhost:3333'
 const HTTP_SERVER_URL = `http://${SERVER_DOMAIN}`;
 const WS_SERVER_URL = `ws://${SERVER_DOMAIN}`;
 
