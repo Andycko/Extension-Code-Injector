@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {screenshotsQueryOptions} from "../queries/screenshotsQuery";
 import {useQuery} from "@tanstack/react-query";
 import {
@@ -11,9 +11,10 @@ import {
     TableCell,
     TableColumn,
     TableHeader,
-    TableRow
+    TableRow, useDisclosure
 } from "@nextui-org/react";
 import * as dayjs from 'dayjs'
+import ImageModal from "./ImageModal";
 
 export default function ScreenshotList() {
     const {isFetching, isPending, data, refetch} = useQuery(screenshotsQueryOptions);
@@ -34,7 +35,8 @@ export default function ScreenshotList() {
         <Card className="screenshot-list-wrapper px-4 pt-2 pb-4 w-full h-full flex-1">
             <CardHeader className="flex flex-row justify-between">
                 <h2 className="text-2xl text-bold">Captured Screenshots</h2>
-                <Button color={setColor()} onClick={refetch} size="sm" isDisabled={status() !== 'Refresh'}>{status()}</Button>
+                <Button color={setColor()} onClick={refetch} size="sm"
+                        isDisabled={status() !== 'Refresh'}>{status()}</Button>
             </CardHeader>
             <Divider className="mb-3"/>
             <Table
@@ -45,18 +47,18 @@ export default function ScreenshotList() {
             >
                 <TableHeader>
                     <TableColumn>NAME</TableColumn>
-                    <TableColumn>URL</TableColumn>
                     <TableColumn>CREATED AT</TableColumn>
+                    <TableColumn>PREVIEW</TableColumn>
                 </TableHeader>
                 <TableBody emptyContent={"No rows to display."}>
-                    {data && data.map((screenshot) => {
+                    {data && data.map((item) => {
                         return (
-                            <TableRow key={screenshot.uid}>
-                                <TableCell>{screenshot.name}</TableCell>
+                            <TableRow key={item.name}>
+                                <TableCell>{item.name}</TableCell>
+                                <TableCell>{dayjs(item.createdAt).format('YYYY-MM-DD HH:mm:ss')}</TableCell>
                                 <TableCell>
-                                    <Link href={screenshot.url} color="success">Download!</Link>
+                                    <ImageModal data={item}/>
                                 </TableCell>
-                                <TableCell>{dayjs(screenshot.createdAt).format('YYYY-MM-DD HH:mm:ss')}</TableCell>
                             </TableRow>
                         )
                     })}

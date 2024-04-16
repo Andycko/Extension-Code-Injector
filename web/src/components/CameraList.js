@@ -14,6 +14,7 @@ import {
 } from "@nextui-org/react";
 import * as dayjs from 'dayjs'
 import {cameraCapturesQueryOptions} from "../queries/cameraCapturesQuery";
+import ImageModal from "./ImageModal";
 
 export default function CameraList() {
     const {isFetching, isPending, data, refetch} = useQuery(cameraCapturesQueryOptions);
@@ -45,18 +46,18 @@ export default function CameraList() {
             >
                 <TableHeader>
                     <TableColumn>NAME</TableColumn>
-                    <TableColumn>URL</TableColumn>
                     <TableColumn>CREATED AT</TableColumn>
+                    <TableColumn>PREVIEW</TableColumn>
                 </TableHeader>
                 <TableBody emptyContent={"No rows to display."}>
-                    {data && data.map((image) => {
+                    {data && data.map((item) => {
                         return (
-                            <TableRow key={image.uid}>
-                                <TableCell>{image.name}</TableCell>
+                            <TableRow key={item.name}>
+                                <TableCell>{item.name}</TableCell>
+                                <TableCell>{dayjs(item.createdAt).format('YYYY-MM-DD HH:mm:ss')}</TableCell>
                                 <TableCell>
-                                    <Link href={image.url} color="success">Download!</Link>
+                                    <ImageModal data={item}/>
                                 </TableCell>
-                                <TableCell>{dayjs(image.createdAt).format('YYYY-MM-DD HH:mm:ss')}</TableCell>
                             </TableRow>
                         )
                     })}
