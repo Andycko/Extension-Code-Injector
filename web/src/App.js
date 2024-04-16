@@ -8,6 +8,7 @@ import {
 } from '@tanstack/react-query'
 import ScreenshotPanel from "./components/ScreenshotPanel";
 import ListTabs from "./components/ListTabs";
+import CameraPanel from "./components/CameraPanel";
 
 // Create a client
 const queryClient = new QueryClient()
@@ -33,6 +34,7 @@ function App() {
                 <div className="w-full h-fit lg:w-1/4 lg:min-w-[25rem]">
                     <CommandInput />
                     <ScreenshotPanel />
+                    <CameraPanel />
                 </div>
                 <ListTabs />
             </section>

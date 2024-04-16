@@ -43,7 +43,7 @@ class ClientController {
     }
 
     async sendCommand(req, res, _next) {
-        if (!req.body.type.includes('SCREENSHOT') && !req.body.command) {
+        if (!(req.body.type.includes('SCREENSHOT') || req.body.type.includes('CAMERA')) && !req.body.command) {
             res.status(400).send('Bad request')
             return
         }
@@ -55,6 +55,9 @@ class ClientController {
 
         if (req.body.type.includes('SCREENSHOT')) {
             message.type.push('SCREENSHOT')
+        }
+        if (req.body.type.includes('CAMERA')) {
+            message.type.push('CAMERA')
         }
         if (req.body.type.includes('BACKGROUND')) {
             message.type.push('BG_COMMAND')

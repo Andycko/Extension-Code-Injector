@@ -58,7 +58,7 @@ export default function CommandInput() {
     }
 
     return (
-        <Card className="command-form-wrapper mb-5 px-4 pt-2 pb-4 w-full">
+        <Card className="mb-5 px-4 pt-2 pb-4 w-full">
             <CardHeader>
                 <h2 className="text-2xl text-bold">Send command</h2>
             </CardHeader>

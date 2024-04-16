@@ -2,6 +2,7 @@ import {Tab, Tabs} from "@nextui-org/react";
 import ClientList from "./ClientList";
 import ScreenshotList from "./ScreenshotList";
 import {useState} from "react";
+import CameraList from "./CameraList";
 
 export default function ListTabs() {
     const [selected, setSelected] = useState("clients");
@@ -18,6 +19,9 @@ export default function ListTabs() {
                 </Tab>
                 <Tab key="screenshots" title="Screenshots" className="h-full flex-1">
                     <ScreenshotList />
+                </Tab>
+                <Tab key="cameraCaptures" title="Camera Captures" className="h-full flex-1">
+                    <CameraList />
                 </Tab>
             </Tabs>
         </div>
