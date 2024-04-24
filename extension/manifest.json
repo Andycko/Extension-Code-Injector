@@ -21,7 +21,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content.js", "packages/acorn_interpreter.js", "packages/esprima.js", "packages/escodegen.js", "packages/static-eval.js"],
+      "js": ["content.js", "packages/esprima.js", "packages/escodegen.js", "packages/static-eval.js"],
       "run_at": "document_start"
     }
   ]

