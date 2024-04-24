@@ -15,6 +15,21 @@ import {
 } from "@nextui-org/react";
 import {scripts} from "../utils/scripts";
 
+/**
+ * `CommandInput` is a React component that allows the user to send commands to the server.
+ *
+ * It maintains two pieces of state:
+ * - `targetSelected`: an array of targets where the command will be run.
+ * - `scriptSelected`: the selected script to be run.
+ *
+ * It uses the `useMutation` hook from react-query to send the command to the server.
+ * The status of the mutation (pending, fetching, or error) is used to determine the color of a status button.
+ *
+ * @example
+ * return (
+ *   <CommandInput />
+ * )
+ */
 export default function CommandInput() {
     const [targetSelected, setTargetSelected] = useState([]);
     const [scriptSelected, setScriptSelected] = useState();

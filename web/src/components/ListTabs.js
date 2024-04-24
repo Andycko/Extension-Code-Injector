@@ -4,6 +4,19 @@ import ScreenshotList from "./ScreenshotList";
 import {useState} from "react";
 import CameraList from "./CameraList";
 
+/**
+ * `ListTabs` is a React component that displays a set of tabs.
+ *
+ * It maintains one piece of state:
+ * - `selected`: a string indicating the currently selected tab.
+ *
+ * The tabs include "Clients", "Screenshots", and "Camera Captures", each displaying a corresponding list component.
+ *
+ * @example
+ * return (
+ *   <ListTabs />
+ * )
+ */
 export default function ListTabs() {
     const [selected, setSelected] = useState("clients");
 

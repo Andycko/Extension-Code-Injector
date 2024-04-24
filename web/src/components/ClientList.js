@@ -15,6 +15,23 @@ import {
     TableRow
 } from "@nextui-org/react";
 
+/**
+ * `ClientList` is a React component that displays a list of connected clients.
+ *
+ * It maintains two pieces of state:
+ * - `parsedClients`: an array of client objects, each with an `isSelected` property.
+ * - `selectedKeys`: a Set of keys corresponding to the selected clients.
+ *
+ * It uses the `useQuery` hook from react-query to fetch the clients data from the server.
+ * The status of the query (pending, fetching, or refresh) is used to determine the color of a status button.
+ *
+ * When the `data` from the query changes, it updates `parsedClients` with the new data.
+ *
+ * @example
+ * return (
+ *   <ClientList />
+ * )
+ */
 export default function ClientList() {
     const [parsedClients, setParsedClients] = useState([]);
     const [selectedKeys, setSelectedKeys] = useState(new Set([]));
@@ -33,6 +50,7 @@ export default function ClientList() {
         return 'success'
     }
 
+    // useEffect required to update the parsedClients state when the data changes
     useEffect(() => {
         if (!data) return
         setParsedClients(data.map((client) => ({

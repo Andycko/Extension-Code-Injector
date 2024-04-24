@@ -9,6 +9,16 @@ import {useMutation} from "@tanstack/react-query";
 import {sendCommandMutationOptions} from "../queries/sendCommandMutation";
 import {clientStore} from "../stores/clientStore";
 
+/**
+ * CameraList is a React component that displays a list of captured images from the camera.
+ * It uses the useQuery hook from react-query to fetch the data.
+ *
+ * @component
+ * @example
+ * return (
+ *   <CameraList />
+ * )
+ */
 export default function CameraPanel() {
     const {isPending, error, isFetching, mutate} = useMutation(sendCommandMutationOptions)
 

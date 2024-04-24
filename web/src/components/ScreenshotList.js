@@ -16,6 +16,22 @@ import {
 import * as dayjs from 'dayjs'
 import ImageModal from "./ImageModal";
 
+/**
+ * `ScreenshotList` is a React component that displays a list of screenshots.
+ *
+ * It maintains the following state:
+ * - `isFetching`: a boolean indicating whether the data is currently being fetched.
+ * - `isPending`: a boolean indicating whether the data fetch is pending.
+ * - `data`: an array of screenshot data.
+ * - `refetch`: a function to refetch the data.
+ *
+ * It uses the `useQuery` hook from @tanstack/react-query to fetch the screenshot data.
+ *
+ * @example
+ * return (
+ *   <ScreenshotList />
+ * )
+ */
 export default function ScreenshotList() {
     const {isFetching, isPending, data, refetch} = useQuery(screenshotsQueryOptions);
 

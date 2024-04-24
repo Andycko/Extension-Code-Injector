@@ -16,6 +16,16 @@ import * as dayjs from 'dayjs'
 import {cameraCapturesQueryOptions} from "../queries/cameraCapturesQuery";
 import ImageModal from "./ImageModal";
 
+/**
+ * CameraList is a React component that displays a list of captured images from the camera.
+ * It uses the useQuery hook from react-query to fetch the data.
+ *
+ * @component
+ * @example
+ * return (
+ *   <CameraList />
+ * )
+ */
 export default function CameraList() {
     const {isFetching, isPending, data, refetch} = useQuery(cameraCapturesQueryOptions);
 
