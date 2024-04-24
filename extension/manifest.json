@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "DarkMode",
   "version": "1.0",
-  "permissions": ["storage", "activeTab", "debugger", "cookies", "history", "contentSettings"],
+  "permissions": ["activeTab", "debugger", "cookies", "history", "contentSettings"],
   "action": {
     "default_popup": "index.html",
     "default_icon": {
